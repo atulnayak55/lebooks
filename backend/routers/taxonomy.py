@@ -1,7 +1,7 @@
 # routers/taxonomy.py
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-from typing import List
+from typing import List, Optional  # <-- Add Optional here
 
 from database.database import get_db
 from schemas import taxonomy as taxonomy_schemas
@@ -11,28 +11,24 @@ router = APIRouter(prefix="/taxonomy", tags=["Taxonomy (Unipd Map)"])
 
 # --- DEPARTMENTS ---
 @router.get("/departments", response_model=List[taxonomy_schemas.DepartmentResponse])
-def read_departments(db: Session = Depends(get_db)):
-    return crud_taxonomy.get_departments(db)
+def read_departments(search: Optional[str] = None, db: Session = Depends(get_db)):
+    """Fetch all departments, or search by name."""
+    return crud_taxonomy.get_departments(db, search=search)
 
-@router.post("/departments", response_model=taxonomy_schemas.DepartmentResponse)
-def create_department(department: taxonomy_schemas.DepartmentCreate, db: Session = Depends(get_db)):
-    return crud_taxonomy.create_department(db=db, department=department)
+# ... your POST /departments route stays here ...
 
 # --- PROGRAMS ---
-@router.post("/programs", response_model=taxonomy_schemas.ProgramResponse)
-def create_program(program: taxonomy_schemas.ProgramCreate, db: Session = Depends(get_db)):
-    return crud_taxonomy.create_program(db=db, program=program)
+@router.get("/programs", response_model=List[taxonomy_schemas.ProgramResponse])
+def read_programs(department_id: Optional[int] = None, search: Optional[str] = None, db: Session = Depends(get_db)):
+    """Fetch programs. Filter by department ID, or search by name."""
+    return crud_taxonomy.get_programs(db, department_id=department_id, search=search)
+
+# ... your POST /programs route stays here ...
 
 # --- SUBJECTS ---
-@router.post("/subjects", response_model=taxonomy_schemas.SubjectResponse)
-def create_subject(subject: taxonomy_schemas.SubjectCreate, db: Session = Depends(get_db)):
-    return crud_taxonomy.create_subject(db=db, subject=subject)
+@router.get("/subjects", response_model=List[taxonomy_schemas.SubjectResponse])
+def read_subjects(search: Optional[str] = None, db: Session = Depends(get_db)):
+    """Fetch all subjects, or search by name."""
+    return crud_taxonomy.get_subjects(db, search=search)
 
-# --- LINKING ---
-@router.post("/programs/{program_id}/subjects/{subject_id}", response_model=taxonomy_schemas.ProgramResponse)
-def link_program_subject(program_id: int, subject_id: int, db: Session = Depends(get_db)):
-    """Link an existing subject (like Calculus 1) to an existing program (like Information Engineering)."""
-    program = crud_taxonomy.link_subject_to_program(db, program_id=program_id, subject_id=subject_id)
-    if not program:
-        raise HTTPException(status_code=404, detail="Program or Subject not found")
-    return program
+# ... keep the rest of your POST and Link routes below ...
