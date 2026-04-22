@@ -3,9 +3,10 @@ import { formatEuro } from "../utils/format";
 
 type ListingCardProps = {
   listing: Listing;
+  onMessageClick?: (listing: Listing) => void;
 };
 
-export function ListingCard({ listing }: ListingCardProps) {
+export function ListingCard({ listing, onMessageClick }: ListingCardProps) {
   return (
     <article className="listing-card">
       <div className="listing-head">
@@ -17,6 +18,15 @@ export function ListingCard({ listing }: ListingCardProps) {
         {listing.description?.trim() || "No description provided."}
       </p>
       <p className="listing-seller">Seller: {listing.seller.name}</p>
+      {onMessageClick && (
+        <button
+          className="sell-book-button"
+          style={{ marginTop: "0.5rem", width: "100%" }}
+          onClick={() => onMessageClick(listing)}
+        >
+          Contact Seller
+        </button>
+      )}
     </article>
   );
 }

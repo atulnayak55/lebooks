@@ -3,6 +3,34 @@
   gap: 1rem;
 }
 
+.listings-toolbar {
+  display: flex;
+  align-items: end;
+  gap: 0.75rem;
+}
+
+.toolbar-search {
+  flex: 1;
+}
+
+.sell-book-button {
+  border: 1px solid #0f766e;
+  background: #0f766e;
+  color: #ffffff;
+  border-radius: 0.75rem;
+  padding: 0.7rem 0.95rem;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.sell-inline-error {
+  margin: 0;
+  color: #b91c1c;
+  font-size: 0.9rem;
+}
+
 .filters-row {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -104,8 +132,116 @@
   color: #64748b;
 }
 
+.sell-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.5);
+  display: grid;
+  place-items: center;
+  z-index: 120;
+  padding: 1rem;
+}
+
+.sell-dialog {
+  width: min(650px, 100%);
+  background: #ffffff;
+  border: 1px solid #dbe2ea;
+  border-radius: 0.9rem;
+  padding: 1rem;
+}
+
+.sell-topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.sell-topbar h2 {
+  margin: 0;
+  color: #0f172a;
+  font-size: 1.15rem;
+}
+
+.sell-close {
+  border: 1px solid #cbd5e1;
+  background: #f8fafc;
+  border-radius: 0.65rem;
+  padding: 0.35rem 0.55rem;
+  font: inherit;
+  cursor: pointer;
+}
+
+.sell-form {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.sell-form label {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.sell-form span {
+  font-size: 0.85rem;
+  color: #334155;
+  font-weight: 600;
+}
+
+.sell-form input,
+.sell-form select,
+.sell-form textarea {
+  border: 1px solid #cbd5e1;
+  border-radius: 0.7rem;
+  padding: 0.6rem 0.7rem;
+  font: inherit;
+  background: #fff;
+  color: #0f172a;
+}
+
+.sell-filters {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.sell-submit {
+  border: 1px solid #0f766e;
+  background: #0f766e;
+  color: #ffffff;
+  border-radius: 0.7rem;
+  padding: 0.7rem 0.9rem;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.sell-submit:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.sell-error {
+  margin: 0;
+  color: #b91c1c;
+  font-size: 0.9rem;
+}
+
 @media (max-width: 900px) {
+  .listings-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .sell-book-button {
+    width: 100%;
+  }
+
   .filters-row {
+    grid-template-columns: 1fr;
+  }
+
+  .sell-filters {
     grid-template-columns: 1fr;
   }
 }

@@ -3,7 +3,10 @@ import { ListingCard } from "../components/ListingCard";
 import { SearchBar } from "../components/SearchBar";
 import { SelectField } from "../components/SelectField";
 import { StatusMessage } from "../components/StatusMessage";
+import { getAuthSession } from "../features/auth/session";
+import { ChatDialog } from "../features/chat/ChatDialog";
 import { fetchListings } from "../features/listings/api";
+import { SellBookDialog } from "../features/listings/SellBookDialog";
 import { fetchDepartments, fetchPrograms } from "../features/taxonomy/api";
 import type { Course, Department, Listing, Program } from "../types/domain";
 
@@ -29,6 +32,25 @@ export function ListingsPage() {
   const [loadingFilters, setLoadingFilters] = useState(true);
   const [loadingListings, setLoadingListings] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [sellDialogOpen, setSellDialogOpen] = useState(false);
+  const [sellError, setSellError] = useState<string | null>(null);
+  const [chatDialogOpen, setChatDialogOpen] = useState(false);
+  const [chatListing, setChatListing] = useState<Listing | null>(null);
+
+  const authSession = getAuthSession();
+
+  async function refreshListings(subjectId?: number) {
+    setLoadingListings(true);
+    setError(null);
+    try {
+      const listingData = await fetchListings(subjectId);
+      setListings(listingData);
+    } catch {
+      setError("Could not load listings for the selected course.");
+    } finally {
+      setLoadingListings(false);
+    }
+  }
 
   useEffect(() => {
     async function loadInitialData() {
@@ -83,17 +105,7 @@ export function ListingsPage() {
 
   useEffect(() => {
     async function loadListingsByCourse() {
-      setLoadingListings(true);
-      setError(null);
-
-      try {
-        const listingData = await fetchListings(toId(selectedCourseId));
-        setListings(listingData);
-      } catch {
-        setError("Could not load listings for the selected course.");
-      } finally {
-        setLoadingListings(false);
-      }
+      await refreshListings(toId(selectedCourseId));
     }
 
     void loadListingsByCourse();
@@ -126,7 +138,29 @@ export function ListingsPage() {
 
   return (
     <section className="listings-page">
-      <SearchBar value={searchText} onChange={setSearchText} />
+      <div className="listings-toolbar">
+        <div className="toolbar-search">
+          <SearchBar value={searchText} onChange={setSearchText} />
+        </div>
+        <button
+          type="button"
+          className="sell-book-button"
+          onClick={() => {
+            const session = getAuthSession();
+            if (!session) {
+              setSellError("Please sign in first to sell a book.");
+              return;
+            }
+            setSellError(null);
+            setSellDialogOpen(true);
+          }}
+          title="Sell a book"
+        >
+          + Sell Book
+        </button>
+      </div>
+
+      {sellError ? <p className="sell-inline-error">{sellError}</p> : null}
 
       <div className="filters-row">
         <SelectField
@@ -199,10 +233,48 @@ export function ListingsPage() {
       ) : (
         <div className="listings-grid">
           {visibleListings.map((listing) => (
-            <ListingCard key={listing.id} listing={listing} />
+            <ListingCard
+              key={listing.id}
+              listing={listing}
+              onMessageClick={(clickedListing) => {
+                if (!authSession) {
+                  alert("Please sign in to message sellers.");
+                  return;
+                }
+
+                if (authSession.userId === clickedListing.seller.id) {
+                  alert("You cannot message yourself!");
+                  return;
+                }
+
+                setChatListing(clickedListing);
+                setChatDialogOpen(true);
+              }}
+            />
           ))}
         </div>
       )}
+
+      <SellBookDialog
+        open={sellDialogOpen}
+        token={authSession?.token ?? ""}
+        departments={departments}
+        onClose={() => setSellDialogOpen(false)}
+        onCreated={() => {
+          void refreshListings(toId(selectedCourseId));
+        }}
+      />
+
+      <ChatDialog
+        open={chatDialogOpen}
+        listing={chatListing}
+        currentUserId={authSession?.userId ?? 0}
+        token={authSession?.token ?? ""}
+        onClose={() => {
+          setChatDialogOpen(false);
+          setChatListing(null);
+        }}
+      />
     </section>
   );
 }

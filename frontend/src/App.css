@@ -20,6 +20,45 @@
   opacity: 0.85;
 }
 
+.app-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.auth-area {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.auth-icon-button,
+.auth-signin,
+.auth-signout {
+  border: 1px solid rgba(148, 163, 184, 0.45);
+  background: rgba(255, 255, 255, 0.1);
+  color: #f8fafc;
+  border-radius: 999px;
+  padding: 0.4rem 0.7rem;
+  font: inherit;
+  cursor: pointer;
+}
+
+.auth-icon-button {
+  width: 2rem;
+  height: 2rem;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  font-weight: 800;
+}
+
+.auth-email {
+  font-size: 0.82rem;
+  color: #cbd5e1;
+}
+
 .app-header h1 {
   margin: 0;
   font-size: 2rem;
@@ -37,6 +76,94 @@
   padding: 1rem;
 }
 
+.auth-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.55);
+  display: grid;
+  place-items: center;
+  z-index: 100;
+  padding: 1rem;
+}
+
+.auth-dialog {
+  width: min(450px, 100%);
+  background: #ffffff;
+  border-radius: 0.9rem;
+  border: 1px solid #dbe2ea;
+  padding: 1rem;
+}
+
+.auth-topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.auth-tabs {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.auth-tab,
+.auth-close {
+  border: 1px solid #cbd5e1;
+  background: #f8fafc;
+  border-radius: 0.65rem;
+  padding: 0.4rem 0.65rem;
+  font: inherit;
+  cursor: pointer;
+}
+
+.auth-tab.active {
+  background: #e0f2fe;
+  border-color: #7dd3fc;
+}
+
+.auth-form {
+  display: grid;
+  gap: 0.7rem;
+}
+
+.auth-form label {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.auth-form span {
+  font-size: 0.82rem;
+  color: #334155;
+}
+
+.auth-form input {
+  border: 1px solid #cbd5e1;
+  border-radius: 0.6rem;
+  padding: 0.55rem 0.65rem;
+  font: inherit;
+}
+
+.auth-submit {
+  border: 1px solid #0ea5e9;
+  background: #0ea5e9;
+  color: #ffffff;
+  border-radius: 0.6rem;
+  padding: 0.65rem 0.8rem;
+  font: inherit;
+  cursor: pointer;
+}
+
+.auth-submit:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.auth-error {
+  margin: 0;
+  color: #b91c1c;
+  font-size: 0.9rem;
+}
+
 @media (max-width: 768px) {
   .app-shell {
     padding: 0.8rem;
@@ -48,5 +175,14 @@
 
   .app-header h1 {
     font-size: 1.55rem;
+  }
+
+  .app-header-row {
+    flex-wrap: wrap;
+  }
+
+  .auth-area {
+    width: 100%;
+    justify-content: flex-end;
   }
 }

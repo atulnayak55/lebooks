@@ -1,0 +1,117 @@
+.inbox-container {
+  display: flex;
+  height: 600px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.9rem;
+  overflow: hidden;
+}
+
+.inbox-sidebar {
+  width: 300px;
+  border-right: 1px solid #e2e8f0;
+  background: #f8fafc;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+}
+
+.inbox-title {
+  padding: 1rem;
+  margin: 0;
+  font-size: 1.1rem;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.inbox-room-btn {
+  padding: 1rem;
+  border: none;
+  border-bottom: 1px solid #e2e8f0;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.inbox-room-btn:hover { background: #f1f5f9; }
+.inbox-room-btn.active { background: #e0f2fe; border-left: 4px solid #0ea5e9; }
+
+.room-listing { font-weight: bold; margin-bottom: 0.25rem; color: #0f172a; }
+.room-person { font-size: 0.85rem; color: #64748b; }
+
+.inbox-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.inbox-empty {
+  padding: 2rem;
+  text-align: center;
+  color: #64748b;
+  margin: auto;
+}
+
+.inbox-header {
+  padding: 1rem;
+  border-bottom: 1px solid #e2e8f0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #f8fafc;
+}
+
+.inbox-header h3 { margin: 0; font-size: 1.1rem; }
+
+.inbox-messages {
+  flex: 1;
+  padding: 1rem;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.message-bubble {
+  max-width: 70%;
+  padding: 0.6rem 1rem;
+  border-radius: 1rem;
+}
+
+.message-bubble.mine {
+  align-self: flex-end;
+  background: #0ea5e9;
+  color: white;
+}
+
+.message-bubble.theirs {
+  align-self: flex-start;
+  background: #e2e8f0;
+  color: #0f172a;
+}
+
+.inbox-form {
+  display: flex;
+  padding: 1rem;
+  border-top: 1px solid #e2e8f0;
+  gap: 0.5rem;
+}
+
+.inbox-form input {
+  flex: 1;
+  padding: 0.7rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 0.5rem;
+}
+
+.inbox-form button {
+  padding: 0.7rem 1.5rem;
+  background: #0ea5e9;
+  color: white;
+  border: none;
+  border-radius: 0.5rem;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.inbox-form button:disabled { opacity: 0.5; cursor: not-allowed; }

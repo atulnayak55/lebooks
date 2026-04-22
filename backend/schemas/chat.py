@@ -1,33 +1,48 @@
 # schemas/chat.py
 from pydantic import BaseModel, ConfigDict
+from typing import Optional, List
 from datetime import datetime
-from typing import Optional
+from .user import UserResponse
 
-# --- CHAT ROOM SCHEMAS ---
-class ChatRoomBase(BaseModel):
-    listing_id: int
-    buyer_id: int
-
-class ChatRoomCreate(ChatRoomBase):
-    pass  # This is what the router was looking for!
-
-class ChatRoomResponse(ChatRoomBase):
-    id: int
-    seller_id: int
-    
-    model_config = ConfigDict(from_attributes=True)
-
-# --- MESSAGE SCHEMAS ---
 class MessageBase(BaseModel):
-    content: str
-    room_id: int
+    content: Optional[str] = None
+    image_url: Optional[str] = None
 
 class MessageCreate(MessageBase):
-    receiver_id: int # Used to help the WebSocket route the message
+    room_id: int
 
 class MessageResponse(MessageBase):
     id: int
     sender_id: int
     timestamp: datetime
     
+    model_config = ConfigDict(from_attributes=True)
+
+
+class ChatRoomCreate(BaseModel):
+    listing_id: int
+    buyer_id: int    
+
+class ChatRoomResponse(BaseModel):
+    id: int
+    listing_id: int
+    buyer_id: int
+    seller_id: int
+    
+    model_config = ConfigDict(from_attributes=True)
+
+
+class ListingMini(BaseModel):
+    id: int
+    title: str
+    price: float
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class ChatRoomDetail(ChatRoomResponse):
+    listing: ListingMini
+    buyer: UserResponse
+    seller: UserResponse
+
     model_config = ConfigDict(from_attributes=True)

@@ -20,7 +20,7 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
         raise HTTPException(status_code=400, detail="Incorrect email or password")
 
     # 3. Return dummy token (We will upgrade this to a real JWT later)
-    return {"access_token": user.email, "token_type": "bearer"}
+    return {"access_token": user.email, "token_type": "bearer", "user_id": user.id}
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
 def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):

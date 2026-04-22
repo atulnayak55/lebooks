@@ -1,12 +1,14 @@
 # routers/chat.py
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Depends, HTTPException, status
+from sqlalchemy import or_
 from sqlalchemy.orm import Session
-from typing import Dict
+from typing import Dict, List
 import json
 
 from database.database import get_db
 from database import models
 from schemas import chat as chat_schemas  # Ensure you have created this schema!
+from routers.auth import get_current_user
 
 router = APIRouter(prefix="/chat", tags=["Chat"])
 
@@ -63,6 +65,42 @@ def create_chat_room(room: chat_schemas.ChatRoomCreate, db: Session = Depends(ge
     db.refresh(db_room)
     return db_room
 
+
+@router.get("/rooms", response_model=List[chat_schemas.ChatRoomDetail])
+def get_user_chat_rooms(
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    """Fetch all chat rooms where the current user is either the buyer or the seller."""
+    rooms = db.query(models.ChatRoom).filter(
+        or_(
+            models.ChatRoom.buyer_id == current_user.id,
+            models.ChatRoom.seller_id == current_user.id
+        )
+    ).all()
+    return rooms
+
+
+@router.get("/rooms/{room_id}/messages", response_model=List[chat_schemas.MessageResponse])
+def get_chat_history(
+    room_id: int,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    """Fetch the message history for a specific room."""
+    room = db.query(models.ChatRoom).filter(models.ChatRoom.id == room_id).first()
+    if not room:
+        raise HTTPException(status_code=404, detail="Room not found")
+
+    if current_user.id not in [room.buyer_id, room.seller_id]:
+        raise HTTPException(status_code=403, detail="Not authorized to view this room")
+
+    messages = db.query(models.Message).filter(
+        models.Message.room_id == room_id
+    ).order_by(models.Message.timestamp.asc()).all()
+
+    return messages
+
 # --- UPDATED WEBSOCKET ENDPOINT ---
 @router.websocket("/ws/{user_id}")
 async def websocket_endpoint(websocket: WebSocket, user_id: int, db: Session = Depends(get_db)):
@@ -85,8 +123,17 @@ async def websocket_endpoint(websocket: WebSocket, user_id: int, db: Session = D
             db_message = models.Message(content=content, room_id=room_id, sender_id=user_id)
             db.add(db_message)
             db.commit()
+            db.refresh(db_message)
 
-            # Forward to receiver
-            await manager.send_personal_message(data, receiver_id)
+            full_message = {
+                "id": db_message.id,
+                "content": db_message.content,
+                "sender_id": db_message.sender_id,
+                "room_id": db_message.room_id,
+                "timestamp": db_message.timestamp.isoformat() if db_message.timestamp else None
+            }
+
+            # Forward the complete persisted message to receiver
+            await manager.send_personal_message(full_message, receiver_id)
     except WebSocketDisconnect:
         manager.disconnect(user_id)
