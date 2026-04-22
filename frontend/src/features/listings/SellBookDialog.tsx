@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { fetchPrograms } from "../taxonomy/api";
-import { createListing } from "./api";
+import { createListing, uploadListingImages } from "./api";
 import type { Department, Program } from "../../types/domain";
 
 type SellBookDialogProps = {
@@ -35,6 +35,7 @@ export function SellBookDialog({
   const [departmentId, setDepartmentId] = useState("");
   const [programId, setProgramId] = useState("");
   const [courseId, setCourseId] = useState("");
+  const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [programs, setPrograms] = useState<Program[]>([]);
 
   const [loadingPrograms, setLoadingPrograms] = useState(false);
@@ -49,6 +50,7 @@ export function SellBookDialog({
     setDepartmentId("");
     setProgramId("");
     setCourseId("");
+    setImageFiles([]);
     setPrograms([]);
     setError(null);
   }
@@ -112,7 +114,7 @@ export function SellBookDialog({
     setError(null);
 
     try {
-      await createListing(
+      const newListing = await createListing(
         {
           title,
           price: parsedPrice,
@@ -122,6 +124,11 @@ export function SellBookDialog({
         },
         token,
       );
+
+      if (imageFiles.length > 0) {
+        await uploadListingImages(newListing.id, imageFiles, token);
+      }
+
       onCreated();
       resetForm();
       onClose();
@@ -185,6 +192,28 @@ export function SellBookDialog({
               value={description}
               onChange={(event) => setDescription(event.target.value)}
             />
+          </label>
+
+          <label>
+            <span>Book Images (optional)</span>
+            <input
+              type="file"
+              accept="image/*"
+              multiple
+              onChange={(event) => {
+                const files = Array.from(event.target.files ?? []);
+                if (files.length > 0) {
+                  setImageFiles((previousFiles) => [...previousFiles, ...files]);
+                }
+                event.currentTarget.value = "";
+              }}
+              style={{ padding: "0.3rem" }}
+            />
+            {imageFiles.length > 0 ? (
+              <small>
+                {imageFiles.length} image(s) selected: {imageFiles.map((file) => file.name).join(", ")}
+              </small>
+            ) : null}
           </label>
 
           <div className="sell-filters">

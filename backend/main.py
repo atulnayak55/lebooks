@@ -1,5 +1,8 @@
 # main.py
+import os
+
 from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from database.database import engine
 from database import models
@@ -14,6 +17,9 @@ app = FastAPI(
     description="Hyper-local textbook marketplace for Unipd",
     version="0.1.0"
 )
+
+os.makedirs("uploads", exist_ok=True)
+app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 
 app.add_middleware(
     CORSMiddleware,

@@ -27,3 +27,29 @@ export async function createListing(
   });
   return response.data;
 }
+
+export async function uploadListingImage(
+  listingId: number,
+  file: File,
+  token: string,
+): Promise<void> {
+  const formData = new FormData();
+  formData.append("file", file);
+
+  await api.post(`/listings/${listingId}/images`, formData, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "multipart/form-data",
+    },
+  });
+}
+
+export async function uploadListingImages(
+  listingId: number,
+  files: File[],
+  token: string,
+): Promise<void> {
+  for (const file of files) {
+    await uploadListingImage(listingId, file, token);
+  }
+}
