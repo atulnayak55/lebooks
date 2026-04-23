@@ -1,5 +1,7 @@
 # main.py
 import os
+from contextlib import asynccontextmanager
+from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
@@ -10,22 +12,35 @@ from database import models
 # Import both of your routers!
 from routers import users, auth, taxonomy, listings, chat
 
-models.Base.metadata.create_all(bind=engine)
+
+BASE_DIR = Path(__file__).resolve().parent
+UPLOAD_DIR = BASE_DIR / "uploads"
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    models.Base.metadata.create_all(bind=engine)
+    yield
 
 app = FastAPI(
     title="Bobooks API",
     description="Hyper-local textbook marketplace for Unipd",
-    version="0.1.0"
+    version="0.1.0",
+    lifespan=lifespan,
 )
 
-os.makedirs("uploads", exist_ok=True)
-app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
+os.makedirs(UPLOAD_DIR, exist_ok=True)
+app.mount("/uploads", StaticFiles(directory=UPLOAD_DIR), name="uploads")
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://localhost:5173",
         "http://127.0.0.1:5173",
+        "http://localhost:5174",
+        "http://127.0.0.1:5174",
+        "http://10.190.169.144:5173",
+        "http://10.190.169.144:5174",
     ],
     allow_credentials=True,
     allow_methods=["*"],

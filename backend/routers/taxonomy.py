@@ -32,6 +32,10 @@ def read_programs(department_id: Optional[int] = None, search: Optional[str] = N
 @router.post("/programs", response_model=taxonomy_schemas.ProgramResponse, status_code=status.HTTP_201_CREATED)
 def create_program(program: taxonomy_schemas.ProgramCreate, db: Session = Depends(get_db)):
     """Create a program under a department."""
+    department = crud_taxonomy.get_department(db, department_id=program.department_id)
+    if not department:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Department not found")
+
     existing = crud_taxonomy.get_program_by_name(db, name=program.name)
     if existing:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Program already exists")

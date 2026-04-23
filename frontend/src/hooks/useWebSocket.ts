@@ -2,22 +2,25 @@ import { useEffect, useRef, useState, useCallback } from "react";
 
 export type WebSocketMessage = {
   id?: number;
-  content: string;
+  content?: string | null;
+  image_url?: string | null;
   room_id: number;
   receiver_id?: number;
   sender_id?: number;
   timestamp?: string;
 };
 
-export function useWebSocket(userId: number | undefined) {
+export function useWebSocket(userId: number | undefined, token: string | undefined) {
   const ws = useRef<WebSocket | null>(null);
   const [messages, setMessages] = useState<WebSocketMessage[]>([]);
 
   useEffect(() => {
-    if (!userId) return;
+    if (!userId || !token) return;
 
-    const baseUrl = import.meta.env.VITE_WS_BASE_URL ?? "ws://127.0.0.1:8000";
-    const wsUrl = `${baseUrl}/chat/ws/${userId}`;
+    const browserHost = typeof window !== "undefined" ? window.location.hostname : "127.0.0.1";
+    const defaultWsBaseUrl = `ws://${browserHost}:8000`;
+    const baseUrl = import.meta.env.VITE_WS_BASE_URL ?? defaultWsBaseUrl;
+    const wsUrl = `${baseUrl}/chat/ws?token=${encodeURIComponent(token)}`;
 
     console.log(`Attempting to connect to WebSocket: ${wsUrl}`);
     ws.current = new WebSocket(wsUrl);
@@ -35,9 +38,10 @@ export function useWebSocket(userId: number | undefined) {
     return () => {
       if (ws.current) {
         ws.current.close();
+        ws.current = null;
       }
     };
-  }, [userId]);
+  }, [userId, token]);
 
   const sendMessage = useCallback((msg: WebSocketMessage) => {
     if (ws.current && ws.current.readyState === WebSocket.OPEN) {
@@ -58,5 +62,9 @@ export function useWebSocket(userId: number | undefined) {
     }
   }, [userId]);
 
-  return { messages, sendMessage };
+  const addMessage = useCallback((msg: WebSocketMessage) => {
+    setMessages((prev) => [...prev, msg]);
+  }, []);
+
+  return { messages, sendMessage, addMessage };
 }

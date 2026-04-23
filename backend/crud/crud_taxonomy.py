@@ -29,6 +29,10 @@ def get_department_by_name(db: Session, name: str):
     return db.query(models.Department).filter(models.Department.name == name).first()
 
 
+def get_department(db: Session, department_id: int):
+    return db.query(models.Department).filter(models.Department.id == department_id).first()
+
+
 def get_program_by_name(db: Session, name: str):
     return db.query(models.Program).filter(models.Program.name == name).first()
 

@@ -9,9 +9,12 @@ export type ListingCreatePayload = {
   subject_id: number;
 };
 
-export async function fetchListings(subjectId?: number): Promise<Listing[]> {
-  const response = await api.get<Listing[]>("/listings", {
-    params: subjectId ? { subject_id: subjectId } : undefined,
+export async function fetchListings(subjectId?: number, sellerId?: number): Promise<Listing[]> {
+  const response = await api.get<Listing[]>("/listings/", {
+    params: {
+      ...(subjectId !== undefined ? { subject_id: subjectId } : {}),
+      ...(sellerId !== undefined ? { seller_id: sellerId } : {}),
+    },
   });
   return response.data;
 }
@@ -52,4 +55,10 @@ export async function uploadListingImages(
   for (const file of files) {
     await uploadListingImage(listingId, file, token);
   }
+}
+
+export async function deleteListing(listingId: number, token: string): Promise<void> {
+  await api.delete(`/listings/${listingId}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
 }

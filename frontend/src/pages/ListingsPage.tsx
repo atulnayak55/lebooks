@@ -3,8 +3,9 @@ import { ListingCard } from "../components/ListingCard";
 import { SearchBar } from "../components/SearchBar";
 import { SelectField } from "../components/SelectField";
 import { StatusMessage } from "../components/StatusMessage";
-import { getAuthSession } from "../features/auth/session";
+import type { AuthSession } from "../features/auth/session";
 import { ChatDialog } from "../features/chat/ChatDialog";
+import { isOwnListing } from "../features/listings/filter";
 import { fetchListings } from "../features/listings/api";
 import { SellBookDialog } from "../features/listings/SellBookDialog";
 import { fetchDepartments, fetchPrograms } from "../features/taxonomy/api";
@@ -19,7 +20,11 @@ function toId(value: string): number | undefined {
   return Number.isFinite(parsed) ? parsed : undefined;
 }
 
-export function ListingsPage() {
+type ListingsPageProps = {
+  authSession: AuthSession | null;
+};
+
+export function ListingsPage({ authSession }: ListingsPageProps) {
   const [departments, setDepartments] = useState<Department[]>([]);
   const [programs, setPrograms] = useState<Program[]>([]);
   const [listings, setListings] = useState<Listing[]>([]);
@@ -36,8 +41,6 @@ export function ListingsPage() {
   const [sellError, setSellError] = useState<string | null>(null);
   const [chatDialogOpen, setChatDialogOpen] = useState(false);
   const [chatListing, setChatListing] = useState<Listing | null>(null);
-
-  const authSession = getAuthSession();
 
   async function refreshListings(subjectId?: number) {
     setLoadingListings(true);
@@ -124,17 +127,21 @@ export function ListingsPage() {
 
   const visibleListings = useMemo(() => {
     const query = searchText.trim().toLowerCase();
+    const withoutOwnListings = authSession
+      ? listings.filter((listing) => !isOwnListing(listing, authSession.userId))
+      : listings;
+
     if (!query) {
-      return listings;
+      return withoutOwnListings;
     }
 
-    return listings.filter((listing) => {
+    return withoutOwnListings.filter((listing) => {
       return (
         listing.title.toLowerCase().includes(query) ||
         (listing.description ?? "").toLowerCase().includes(query)
       );
     });
-  }, [listings, searchText]);
+  }, [authSession, listings, searchText]);
 
   return (
     <section className="listings-page">
@@ -146,8 +153,7 @@ export function ListingsPage() {
           type="button"
           className="sell-book-button"
           onClick={() => {
-            const session = getAuthSession();
-            if (!session) {
+            if (!authSession) {
               setSellError("Please sign in first to sell a book.");
               return;
             }
@@ -242,7 +248,7 @@ export function ListingsPage() {
                   return;
                 }
 
-                if (authSession.userId === clickedListing.seller.id) {
+                if (isOwnListing(clickedListing, authSession.userId)) {
                   alert("You cannot message yourself!");
                   return;
                 }

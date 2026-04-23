@@ -3,6 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from database.database import get_db
+from database import models
 from schemas import user as user_schemas
 from crud import crud_user
 from core.security import get_password_hash
@@ -22,6 +23,14 @@ def create_user(user: user_schemas.UserCreate, db: Session = Depends(get_db)):
             status_code=status.HTTP_400_BAD_REQUEST, 
             detail="Email already registered"
         )
+
+    if user.unipd_id:
+        existing_unipd_id = db.query(models.User).filter(models.User.unipd_id == user.unipd_id).first()
+        if existing_unipd_id:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Unipd ID already registered"
+            )
     
     # 2. Hash the raw password before saving it
     hashed_password = get_password_hash(user.password)

@@ -3,29 +3,35 @@ import type { ReactNode } from "react";
 import { AuthDialog } from "../features/auth/AuthDialog";
 import {
   clearAuthSession,
-  getAuthSession,
   saveAuthSession,
   type AuthSession,
 } from "../features/auth/session";
 
 type MainLayoutProps = {
   children: ReactNode;
-  currentView: "listings" | "inbox";
-  onViewChange: (view: "listings" | "inbox") => void;
+  currentView: "listings" | "inbox" | "mylistings";
+  onViewChange: (view: "listings" | "inbox" | "mylistings") => void;
+  session: AuthSession | null;
+  onSessionChange: (session: AuthSession | null) => void;
 };
 
-export function MainLayout({ children, currentView, onViewChange }: MainLayoutProps) {
+export function MainLayout({
+  children,
+  currentView,
+  onViewChange,
+  session,
+  onSessionChange,
+}: MainLayoutProps) {
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [session, setSession] = useState<AuthSession | null>(() => getAuthSession());
 
   function handleSignedIn(nextSession: AuthSession) {
     saveAuthSession(nextSession);
-    setSession(nextSession);
+    onSessionChange(nextSession);
   }
 
   function handleSignOut() {
     clearAuthSession();
-    setSession(null);
+    onSessionChange(null);
     onViewChange("listings");
   }
 
@@ -58,6 +64,16 @@ export function MainLayout({ children, currentView, onViewChange }: MainLayoutPr
                 >
                   Inbox
                 </button>
+                <button
+                  className="auth-signin"
+                  onClick={() => onViewChange("mylistings")}
+                  style={{
+                    background: currentView === "mylistings" ? "#cbd5e1" : "transparent",
+                    color: currentView === "mylistings" ? "#0f172a" : "inherit",
+                  }}
+                >
+                  My Listings
+                </button>
                 <span className="auth-email">{session.email}</span>
                 <button type="button" className="auth-signout" onClick={handleSignOut}>
                   Sign out
@@ -70,11 +86,17 @@ export function MainLayout({ children, currentView, onViewChange }: MainLayoutPr
             )}
           </div>
         </div>
-        <h1>{currentView === "listings" ? "Book Listings" : "My Inbox"}</h1>
+        <h1>
+          {currentView === "listings" ? "Book Listings" : null}
+          {currentView === "inbox" ? "My Inbox" : null}
+          {currentView === "mylistings" ? "My Listings" : null}
+        </h1>
         <p className="app-subtitle">
           {currentView === "listings"
             ? "Browse books by department, program, and course."
-            : "View and respond to your active chats."}
+            : null}
+          {currentView === "inbox" ? "View and respond to your active chats." : null}
+          {currentView === "mylistings" ? "Manage your active book inventory." : null}
         </p>
       </header>
       <main className="app-content">{children}</main>

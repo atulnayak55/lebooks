@@ -2,7 +2,6 @@ import { api } from "../../lib/api";
 
 export type ChatRoomCreatePayload = {
   listing_id: number;
-  buyer_id: number;
 };
 
 export type ChatRoomResponse = {
@@ -24,7 +23,8 @@ export type ChatRoomDetail = ChatRoomResponse & {
 
 export type MessageResponse = {
   id: number;
-  content: string;
+  content?: string | null;
+  image_url?: string | null;
   sender_id: number;
   room_id: number;
   timestamp: string;
@@ -48,6 +48,25 @@ export async function fetchChatRooms(token: string): Promise<ChatRoomDetail[]> {
 export async function fetchChatHistory(roomId: number, token: string): Promise<MessageResponse[]> {
   const response = await api.get<MessageResponse[]>(`/chat/rooms/${roomId}/messages`, {
     headers: { Authorization: `Bearer ${token}` },
+  });
+  return response.data;
+}
+
+export async function uploadChatImage(
+  roomId: number,
+  receiverId: number,
+  file: File,
+  token: string,
+): Promise<MessageResponse> {
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("receiver_id", receiverId.toString());
+
+  const response = await api.post<MessageResponse>(`/chat/rooms/${roomId}/messages/image`, formData, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "multipart/form-data",
+    },
   });
   return response.data;
 }

@@ -7,14 +7,21 @@ def get_listing(db: Session, listing_id: int):
     """Fetch a single listing by its ID."""
     return db.query(models.Listing).filter(models.Listing.id == listing_id).first()
 
-def get_listings(db: Session, skip: int = 0, limit: int = 50, subject_id: int = None):
-    """Fetch multiple listings, with an optional filter for specific subjects/exams."""
+def get_listings(
+    db: Session,
+    skip: int = 0,
+    limit: int = 50,
+    subject_id: int = None,
+    seller_id: int = None,
+):
+    """Fetch multiple listings, with optional filters for subjects or sellers."""
     query = db.query(models.Listing)
-    
-    # If the student is looking for a specific Unipd subject, filter the query
-    if subject_id:
+
+    if subject_id is not None:
         query = query.filter(models.Listing.subject_id == subject_id)
-        
+    if seller_id is not None:
+        query = query.filter(models.Listing.seller_id == seller_id)
+
     return query.offset(skip).limit(limit).all()
 
 def create_listing(db: Session, listing: listing_schemas.ListingCreate, seller_id: int):

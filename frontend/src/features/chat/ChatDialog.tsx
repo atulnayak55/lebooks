@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { useWebSocket } from "../../hooks/useWebSocket";
-import { createOrGetChatRoom, type ChatRoomResponse } from "./api";
+import { createOrGetChatRoom, fetchChatHistory, type ChatRoomResponse, type MessageResponse } from "./api";
 import type { Listing } from "../../types/domain";
 
 type ChatDialogProps = {
@@ -14,24 +14,24 @@ type ChatDialogProps = {
 export function ChatDialog({ open, listing, currentUserId, token, onClose }: ChatDialogProps) {
   const [roomId, setRoomId] = useState<number | null>(null);
   const [roomInfo, setRoomInfo] = useState<ChatRoomResponse | null>(null);
+  const [history, setHistory] = useState<MessageResponse[]>([]);
   const [draft, setDraft] = useState("");
   const [error, setError] = useState<string | null>(null);
 
   // Connect to the WebSocket using our custom hook!
-  const { messages, sendMessage } = useWebSocket(currentUserId);
+  const { messages, sendMessage } = useWebSocket(currentUserId, token);
 
   // When the dialog opens, ping the backend to create/fetch the room
   useEffect(() => {
     async function initRoom() {
-      if (!open || !listing || !currentUserId) return;
+      if (!open || !listing || !currentUserId || !token) return;
       
       try {
-        const room = await createOrGetChatRoom({
-          listing_id: listing.id,
-          buyer_id: currentUserId
-        }, token);
+        const room = await createOrGetChatRoom({ listing_id: listing.id }, token);
+        const messageHistory = await fetchChatHistory(room.id, token);
         setRoomId(room.id);
         setRoomInfo(room);
+        setHistory(messageHistory);
         setError(null);
       } catch {
         setError("Could not initialize chat room.");
@@ -41,10 +41,23 @@ export function ChatDialog({ open, listing, currentUserId, token, onClose }: Cha
     initRoom();
   }, [open, listing, currentUserId, token]);
 
-  if (!open || !listing) return null;
-
   // Filter messages to only show ones for THIS specific room
-  const roomMessages = messages.filter(m => m.room_id === roomId);
+  const roomMessages = useMemo(() => {
+    const liveRoomMessages = messages.filter(m => m.room_id === roomId);
+    const seenIds = new Set<number>();
+    return [...history, ...liveRoomMessages].filter((message) => {
+      if (message.id === undefined) {
+        return true;
+      }
+      if (seenIds.has(message.id)) {
+        return false;
+      }
+      seenIds.add(message.id);
+      return true;
+    });
+  }, [history, messages, roomId]);
+
+  if (!open || !listing) return null;
 
   function handleSend(e: React.FormEvent) {
     e.preventDefault();
@@ -62,13 +75,22 @@ export function ChatDialog({ open, listing, currentUserId, token, onClose }: Cha
     setDraft(""); // Clear input
   }
 
+  function handleClose() {
+    setRoomId(null);
+    setRoomInfo(null);
+    setHistory([]);
+    setDraft("");
+    setError(null);
+    onClose();
+  }
+
   return (
     <div className="auth-overlay" role="dialog" aria-modal="true">
       <div className="auth-dialog chat-dialog" style={{ display: 'flex', flexDirection: 'column', height: '400px' }}>
         
         <div className="auth-topbar">
           <h2>Chat about: {listing.title}</h2>
-          <button className="auth-close" onClick={onClose}>x</button>
+          <button className="auth-close" onClick={handleClose}>x</button>
         </div>
 
         {error ? <p className="auth-error">{error}</p> : null}
@@ -80,7 +102,7 @@ export function ChatDialog({ open, listing, currentUserId, token, onClose }: Cha
             roomMessages.map((msg, idx) => {
               const isMine = msg.sender_id === currentUserId;
               return (
-                <div key={idx} style={{ textAlign: isMine ? 'right' : 'left', marginBottom: '0.5rem' }}>
+                <div key={msg.id ?? `local-${idx}`} style={{ textAlign: isMine ? 'right' : 'left', marginBottom: '0.5rem' }}>
                   <span style={{ 
                     display: 'inline-block', 
                     background: isMine ? '#0ea5e9' : '#e2e8f0', 

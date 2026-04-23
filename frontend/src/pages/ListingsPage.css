@@ -343,6 +343,18 @@
   font-size: 0.9rem;
 }
 
+.my-listings-delete {
+  margin-top: 1rem;
+  width: 100%;
+  background: #fee2e2;
+  color: #b91c1c;
+  border: 1px solid #fca5a5;
+  padding: 0.6rem;
+  border-radius: 0.5rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
 @media (max-width: 900px) {
   .listings-toolbar {
     flex-direction: column;

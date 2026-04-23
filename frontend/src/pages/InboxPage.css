@@ -63,6 +63,16 @@
 
 .inbox-header h3 { margin: 0; font-size: 1.1rem; }
 
+.delete-listing-chat-button {
+  border: none;
+  background: #ef4444;
+  color: #ffffff;
+  padding: 0.5rem 0.9rem;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  font-weight: 700;
+}
+
 .inbox-messages {
   flex: 1;
   padding: 1rem;
@@ -76,6 +86,14 @@
   max-width: 70%;
   padding: 0.6rem 1rem;
   border-radius: 1rem;
+}
+
+.message-image {
+  max-width: 200px;
+  border-radius: 0.5rem;
+  display: block;
+  margin-bottom: 0.5rem;
+  cursor: zoom-in;
 }
 
 .message-bubble.mine {
@@ -115,3 +133,43 @@
 }
 
 .inbox-form button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.attach-button {
+  cursor: pointer;
+  padding: 0.7rem;
+  background: #e2e8f0;
+  border-radius: 0.5rem;
+  display: grid;
+  place-items: center;
+  min-width: 2.5rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.chat-image-preview {
+  position: fixed;
+  inset: 0;
+  z-index: 210;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+}
+
+.chat-image-backdrop {
+  position: absolute;
+  inset: 0;
+  border: none;
+  background: rgba(2, 6, 23, 0.82);
+  cursor: zoom-out;
+}
+
+.chat-image-full {
+  position: relative;
+  z-index: 1;
+  max-width: min(92vw, 1100px);
+  max-height: 90vh;
+  object-fit: contain;
+  border-radius: 0.7rem;
+  border: 1px solid #475569;
+  background: #020617;
+}

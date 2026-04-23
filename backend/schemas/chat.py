@@ -13,6 +13,7 @@ class MessageCreate(MessageBase):
 
 class MessageResponse(MessageBase):
     id: int
+    room_id: int
     sender_id: int
     timestamp: datetime
     
@@ -21,7 +22,6 @@ class MessageResponse(MessageBase):
 
 class ChatRoomCreate(BaseModel):
     listing_id: int
-    buyer_id: int    
 
 class ChatRoomResponse(BaseModel):
     id: int

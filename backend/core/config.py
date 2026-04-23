@@ -1,7 +1,7 @@
-from pydantic import BaseSettings
+from pydantic import BaseModel
 
 
-class Settings(BaseSettings):
+class Settings(BaseModel):
     app_name: str = "Backend API"
 
 

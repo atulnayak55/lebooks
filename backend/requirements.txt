@@ -3,3 +3,7 @@ uvicorn[standard]
 sqlalchemy
 pydantic
 passlib[bcrypt]
+psycopg2-binary
+PyJWT
+python-multipart
+email-validator

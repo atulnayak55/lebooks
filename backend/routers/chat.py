@@ -1,16 +1,20 @@
 # routers/chat.py
-from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Depends, HTTPException, status
+import shutil
+import uuid
+from pathlib import Path
+
+from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Depends, HTTPException, UploadFile, File, Form, status
 from sqlalchemy import or_
 from sqlalchemy.orm import Session
 from typing import Dict, List
-import json
 
 from database.database import get_db
 from database import models
 from schemas import chat as chat_schemas  # Ensure you have created this schema!
-from routers.auth import get_current_user
+from routers.auth import get_current_user, get_user_from_token
 
 router = APIRouter(prefix="/chat", tags=["Chat"])
+UPLOAD_DIR = Path(__file__).resolve().parent.parent / "uploads"
 
 class ConnectionManager:
     def __init__(self):
@@ -38,26 +42,30 @@ manager = ConnectionManager()
 
 # --- NEW HTTP ROUTE (This will show up in Swagger) ---
 @router.post("/rooms", response_model=chat_schemas.ChatRoomResponse)
-def create_chat_room(room: chat_schemas.ChatRoomCreate, db: Session = Depends(get_db)):
-    """Creates a chat room. Buyer ID comes from the request, Seller ID comes from the Listing."""
-    # 1. Check if room already exists
+def create_chat_room(
+    room: chat_schemas.ChatRoomCreate,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
+):
+    """Create a chat room. The buyer comes from the authenticated user."""
+    listing = db.query(models.Listing).filter(models.Listing.id == room.listing_id).first()
+    if not listing:
+        raise HTTPException(status_code=404, detail="Listing not found")
+
+    if listing.seller_id == current_user.id:
+        raise HTTPException(status_code=400, detail="Sellers cannot create buyer chats for their own listings")
+
     existing_room = db.query(models.ChatRoom).filter(
         models.ChatRoom.listing_id == room.listing_id,
-        models.ChatRoom.buyer_id == room.buyer_id
+        models.ChatRoom.buyer_id == current_user.id,
     ).first()
     
     if existing_room:
         return existing_room
 
-    # 2. Get the listing to find who the seller is
-    listing = db.query(models.Listing).filter(models.Listing.id == room.listing_id).first()
-    if not listing:
-        raise HTTPException(status_code=404, detail="Listing not found")
-
-    # 3. Create the room
     db_room = models.ChatRoom(
         listing_id=room.listing_id,
-        buyer_id=room.buyer_id,
+        buyer_id=current_user.id,
         seller_id=listing.seller_id
     )
     db.add(db_room)
@@ -101,9 +109,75 @@ def get_chat_history(
 
     return messages
 
+
+@router.post("/rooms/{room_id}/messages/image", response_model=chat_schemas.MessageResponse)
+async def upload_chat_image(
+    room_id: int,
+    receiver_id: int = Form(...),
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
+):
+    """Upload an image to a chat room and broadcast it via WebSocket."""
+    room = db.query(models.ChatRoom).filter(models.ChatRoom.id == room_id).first()
+    if not room or current_user.id not in [room.buyer_id, room.seller_id]:
+        raise HTTPException(status_code=403, detail="Not authorized for this room")
+
+    # Ensure receiver belongs to this room to avoid pushing messages to unrelated users.
+    if receiver_id not in [room.buyer_id, room.seller_id]:
+        raise HTTPException(status_code=400, detail="Receiver does not belong to this room")
+    if receiver_id == current_user.id:
+        raise HTTPException(status_code=400, detail="Receiver must be the other room participant")
+
+    filename = file.filename or "upload"
+    ext = filename.split(".")[-1] if "." in filename else "bin"
+    safe_filename = f"chat_{uuid.uuid4()}.{ext}"
+    UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+    filepath = UPLOAD_DIR / safe_filename
+
+    with open(filepath, "wb") as buffer:
+        shutil.copyfileobj(file.file, buffer)
+
+    image_url = f"/uploads/{safe_filename}"
+
+    db_message = models.Message(
+        content="",
+        image_url=image_url,
+        room_id=room_id,
+        sender_id=current_user.id,
+    )
+    db.add(db_message)
+    db.commit()
+    db.refresh(db_message)
+
+    full_message = {
+        "id": db_message.id,
+        "content": db_message.content,
+        "image_url": db_message.image_url,
+        "sender_id": db_message.sender_id,
+        "room_id": db_message.room_id,
+        "timestamp": db_message.timestamp.isoformat() if db_message.timestamp else None,
+    }
+    await manager.send_personal_message(full_message, receiver_id)
+
+    return db_message
+
 # --- UPDATED WEBSOCKET ENDPOINT ---
-@router.websocket("/ws/{user_id}")
-async def websocket_endpoint(websocket: WebSocket, user_id: int, db: Session = Depends(get_db)):
+@router.websocket("/ws")
+@router.websocket("/ws/{_legacy_user_id}")
+async def websocket_endpoint(
+    websocket: WebSocket,
+    token: str,
+    _legacy_user_id: int | None = None,
+    db: Session = Depends(get_db),
+):
+    try:
+        current_user = get_user_from_token(token=token, db=db)
+    except HTTPException:
+        await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
+        return
+
+    user_id = current_user.id
     await manager.connect(user_id, websocket)
     try:
         while True:
@@ -119,6 +193,15 @@ async def websocket_endpoint(websocket: WebSocket, user_id: int, db: Session = D
                 await websocket.send_json({"error": f"Room {room_id} does not exist. Create it via POST /chat/rooms first."})
                 continue
 
+            if user_id not in [room.buyer_id, room.seller_id]:
+                await websocket.send_json({"error": "Not authorized for this room"})
+                continue
+
+            expected_receiver_id = room.seller_id if user_id == room.buyer_id else room.buyer_id
+            if receiver_id != expected_receiver_id:
+                await websocket.send_json({"error": "Receiver does not belong to this conversation"})
+                continue
+
             # Save to DB
             db_message = models.Message(content=content, room_id=room_id, sender_id=user_id)
             db.add(db_message)
@@ -128,6 +211,7 @@ async def websocket_endpoint(websocket: WebSocket, user_id: int, db: Session = D
             full_message = {
                 "id": db_message.id,
                 "content": db_message.content,
+                "image_url": db_message.image_url,
                 "sender_id": db_message.sender_id,
                 "room_id": db_message.room_id,
                 "timestamp": db_message.timestamp.isoformat() if db_message.timestamp else None

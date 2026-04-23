@@ -1,20 +1,19 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import type { Listing } from "../types/domain";
 import { formatEuro } from "../utils/format";
+import { backendBaseUrl } from "../lib/api";
 
 type ListingCardProps = {
   listing: Listing;
   onMessageClick?: (listing: Listing) => void;
 };
 
-const BACKEND_URL = import.meta.env.VITE_API_BASE_URL ?? "http://127.0.0.1:8000";
-
 export function ListingCard({ listing, onMessageClick }: ListingCardProps) {
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [activeImageIndex, setActiveImageIndex] = useState(0);
 
   const imageUrls = useMemo(
-    () => listing.images.map((image) => `${BACKEND_URL}${image.image_url}`),
+    () => listing.images.map((image) => `${backendBaseUrl}${image.image_url}`),
     [listing.images],
   );
 
@@ -30,27 +29,27 @@ export function ListingCard({ listing, onMessageClick }: ListingCardProps) {
     setLightboxOpen(true);
   }
 
-  function closeLightbox() {
+  const closeLightbox = useCallback(() => {
     setLightboxOpen(false);
-  }
+  }, []);
 
-  function showPreviousImage() {
+  const showPreviousImage = useCallback(() => {
     if (!hasImages) {
       return;
     }
     setActiveImageIndex((currentIndex) =>
       currentIndex === 0 ? imageUrls.length - 1 : currentIndex - 1,
     );
-  }
+  }, [hasImages, imageUrls.length]);
 
-  function showNextImage() {
+  const showNextImage = useCallback(() => {
     if (!hasImages) {
       return;
     }
     setActiveImageIndex((currentIndex) =>
       currentIndex === imageUrls.length - 1 ? 0 : currentIndex + 1,
     );
-  }
+  }, [hasImages, imageUrls.length]);
 
   useEffect(() => {
     if (!lightboxOpen) {
@@ -71,7 +70,7 @@ export function ListingCard({ listing, onMessageClick }: ListingCardProps) {
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [lightboxOpen, imageUrls.length]);
+  }, [closeLightbox, lightboxOpen, showNextImage, showPreviousImage]);
 
   return (
     <article className="listing-card">
