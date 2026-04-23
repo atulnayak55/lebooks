@@ -1,6 +1,8 @@
 import { useState } from "react";
 import type { ReactNode } from "react";
 import { AuthDialog } from "../features/auth/AuthDialog";
+import lebooksLogo from "../assets/lebooks.png";
+import { useI18n } from "../i18n/I18nProvider";
 import {
   clearAuthSession,
   saveAuthSession,
@@ -25,6 +27,7 @@ export function MainLayout({
   unreadInboxCount,
 }: MainLayoutProps) {
   const [dialogOpen, setDialogOpen] = useState(false);
+  const { language, setLanguage, t } = useI18n();
 
   function handleSignedIn(nextSession: AuthSession) {
     saveAuthSession(nextSession);
@@ -41,70 +44,69 @@ export function MainLayout({
     <div className="app-shell">
       <header className="app-header">
         <div className="app-header-row">
-          <p className="app-kicker">UniPd Marketplace</p>
+          <div className="brand-lockup">
+            <div className="brand-logo-shell">
+              <img src={lebooksLogo} alt="lebooks logo" className="brand-logo" />
+            </div>
+          </div>
           <div className="auth-area">
+            <div className="language-switcher" role="group" aria-label={t("language.label")}>
+              <button
+                type="button"
+                className={`language-button ${language === "en" ? "active" : ""}`}
+                onClick={() => setLanguage("en")}
+              >
+                {t("language.english")}
+              </button>
+              <button
+                type="button"
+                className={`language-button ${language === "it" ? "active" : ""}`}
+                onClick={() => setLanguage("it")}
+              >
+                {t("language.italian")}
+              </button>
+            </div>
             <button
-              className="auth-signin"
+              className={`auth-signin nav-button ${currentView === "listings" ? "active" : ""}`}
               onClick={() => onViewChange("listings")}
-              style={{
-                background: currentView === "listings" ? "#cbd5e1" : "transparent",
-                color: currentView === "listings" ? "#0f172a" : "inherit",
-              }}
             >
-              Marketplace
+              {t("nav.marketplace")}
             </button>
 
             {session ? (
               <>
                 <button
-                  className="auth-signin"
+                  className={`auth-signin nav-button ${currentView === "inbox" ? "active" : ""}`}
                   onClick={() => onViewChange("inbox")}
-                  style={{
-                    background: currentView === "inbox" ? "#cbd5e1" : "transparent",
-                    color: currentView === "inbox" ? "#0f172a" : "inherit",
-                  }}
                 >
-                  <span className="nav-button-label">Inbox</span>
+                  <span className="nav-button-label">{t("nav.inbox")}</span>
                   {unreadInboxCount > 0 ? (
-                    <span className="inbox-badge" aria-label={`${unreadInboxCount} unread messages`}>
+                    <span
+                      className="inbox-badge"
+                      aria-label={t("nav.unreadMessages", { count: unreadInboxCount })}
+                    >
                       {unreadInboxCount > 99 ? "99+" : unreadInboxCount}
                     </span>
                   ) : null}
                 </button>
                 <button
-                  className="auth-signin"
+                  className={`auth-signin nav-button ${currentView === "mylistings" ? "active" : ""}`}
                   onClick={() => onViewChange("mylistings")}
-                  style={{
-                    background: currentView === "mylistings" ? "#cbd5e1" : "transparent",
-                    color: currentView === "mylistings" ? "#0f172a" : "inherit",
-                  }}
                 >
-                  My Listings
+                  {t("nav.myListings")}
                 </button>
                 <span className="auth-email">{session.email}</span>
                 <button type="button" className="auth-signout" onClick={handleSignOut}>
-                  Sign out
+                  {t("nav.signOut")}
                 </button>
               </>
             ) : (
               <button type="button" className="auth-signin" onClick={() => setDialogOpen(true)}>
-                Sign in
+                {t("nav.signIn")}
               </button>
             )}
           </div>
         </div>
-        <h1>
-          {currentView === "listings" ? "Book Listings" : null}
-          {currentView === "inbox" ? "My Inbox" : null}
-          {currentView === "mylistings" ? "My Listings" : null}
-        </h1>
-        <p className="app-subtitle">
-          {currentView === "listings"
-            ? "Browse books by department, program, and course."
-            : null}
-          {currentView === "inbox" ? "View and respond to your active chats." : null}
-          {currentView === "mylistings" ? "Manage your active book inventory." : null}
-        </p>
       </header>
       <main className="app-content">{children}</main>
       <AuthDialog

@@ -8,11 +8,19 @@ export type WebSocketMessage = {
   receiver_id?: number;
   sender_id?: number;
   timestamp?: string;
+  seen_at?: string | null;
+};
+
+export type ReadReceipt = {
+  room_id: number;
+  message_ids: number[];
+  seen_at: string;
 };
 
 export function useWebSocket(userId: number | undefined, token: string | undefined) {
   const ws = useRef<WebSocket | null>(null);
   const [messages, setMessages] = useState<WebSocketMessage[]>([]);
+  const [readReceipts, setReadReceipts] = useState<ReadReceipt[]>([]);
 
   useEffect(() => {
     if (!userId || !token) return;
@@ -32,6 +40,26 @@ export function useWebSocket(userId: number | undefined, token: string | undefin
     ws.current.onmessage = (event) => {
       const data = JSON.parse(event.data);
       console.log("Incoming message from server:", data);
+
+      if (data.type === "read_receipt") {
+        setReadReceipts((prev) => [
+          ...prev,
+          {
+            room_id: data.room_id,
+            message_ids: data.message_ids ?? [],
+            seen_at: data.seen_at,
+          },
+        ]);
+        setMessages((prev) =>
+          prev.map((message) =>
+            message.id !== undefined && data.message_ids?.includes(message.id)
+              ? { ...message, seen_at: data.seen_at }
+              : message,
+          ),
+        );
+        return;
+      }
+
       setMessages((prev) => [...prev, data]);
     };
 
@@ -47,24 +75,14 @@ export function useWebSocket(userId: number | undefined, token: string | undefin
     if (ws.current && ws.current.readyState === WebSocket.OPEN) {
       console.log("Sending message to server:", msg);
       ws.current.send(JSON.stringify(msg));
-
-      setMessages((prev) => [
-        ...prev,
-        {
-          ...msg,
-          id: Date.now(),
-          sender_id: userId,
-          timestamp: new Date().toISOString(),
-        },
-      ]);
     } else {
       console.error("Cannot send: WebSocket is not connected.");
     }
-  }, [userId]);
+  }, []);
 
   const addMessage = useCallback((msg: WebSocketMessage) => {
     setMessages((prev) => [...prev, msg]);
   }, []);
 
-  return { messages, sendMessage, addMessage };
+  return { messages, readReceipts, sendMessage, addMessage };
 }

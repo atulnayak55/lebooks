@@ -16,8 +16,15 @@ class MessageResponse(MessageBase):
     room_id: int
     sender_id: int
     timestamp: datetime
+    seen_at: Optional[datetime] = None
     
     model_config = ConfigDict(from_attributes=True)
+
+
+class ReadReceiptResponse(BaseModel):
+    room_id: int
+    message_ids: List[int]
+    seen_at: datetime
 
 
 class ChatRoomCreate(BaseModel):

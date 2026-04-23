@@ -1,7 +1,9 @@
 import { useMemo, useState, useEffect } from "react";
-import { createOrGetChatRoom, fetchChatHistory, type ChatRoomResponse, type MessageResponse } from "./api";
+import { useI18n } from "../../i18n/I18nProvider";
+import { createOrGetChatRoom, fetchChatHistory, markChatRoomRead, type ChatRoomResponse, type MessageResponse } from "./api";
 import type { useWebSocket } from "../../hooks/useWebSocket";
 import type { Listing } from "../../types/domain";
+import { formatMessageTime } from "../../utils/format";
 
 type ChatDialogProps = {
   open: boolean;
@@ -20,13 +22,14 @@ export function ChatDialog({
   chatConnection,
   onClose,
 }: ChatDialogProps) {
+  const { locale, t } = useI18n();
   const [roomId, setRoomId] = useState<number | null>(null);
   const [roomInfo, setRoomInfo] = useState<ChatRoomResponse | null>(null);
   const [history, setHistory] = useState<MessageResponse[]>([]);
   const [draft, setDraft] = useState("");
   const [error, setError] = useState<string | null>(null);
 
-  const { messages, sendMessage } = chatConnection;
+  const { messages, readReceipts, sendMessage } = chatConnection;
 
   // When the dialog opens, ping the backend to create/fetch the room
   useEffect(() => {
@@ -39,14 +42,32 @@ export function ChatDialog({
         setRoomId(room.id);
         setRoomInfo(room);
         setHistory(messageHistory);
+        void markChatRoomRead(room.id, token);
         setError(null);
       } catch {
-        setError("Could not initialize chat room.");
+        setError(t("chat.initError"));
       }
     }
 
     initRoom();
   }, [open, listing, currentUserId, token]);
+
+  useEffect(() => {
+    if (!open || !roomId || !token) return;
+
+    const hasUnreadIncomingLiveMessage = messages.some((message) => {
+      return (
+        message.room_id === roomId &&
+        message.sender_id !== undefined &&
+        message.sender_id !== currentUserId &&
+        !message.seen_at
+      );
+    });
+
+    if (hasUnreadIncomingLiveMessage) {
+      void markChatRoomRead(roomId, token);
+    }
+  }, [currentUserId, messages, open, roomId, token]);
 
   // Filter messages to only show ones for THIS specific room
   const roomMessages = useMemo(() => {
@@ -63,6 +84,30 @@ export function ChatDialog({
       return true;
     });
   }, [history, messages, roomId]);
+
+  const receiptSeenByMessageId = useMemo(() => {
+    const seenByMessageId = new Map<number, string>();
+    for (const receipt of readReceipts) {
+      if (receipt.room_id !== roomId) {
+        continue;
+      }
+      for (const messageId of receipt.message_ids) {
+        seenByMessageId.set(messageId, receipt.seen_at);
+      }
+    }
+    return seenByMessageId;
+  }, [readReceipts, roomId]);
+
+  const latestSeenOwnMessageId = useMemo(() => {
+    const seenOwnMessage = [...roomMessages].reverse().find((message) => {
+      if (message.id === undefined || message.sender_id !== currentUserId) {
+        return false;
+      }
+      return Boolean(message.seen_at || receiptSeenByMessageId.get(message.id));
+    });
+
+    return seenOwnMessage?.id;
+  }, [currentUserId, receiptSeenByMessageId, roomMessages]);
 
   if (!open || !listing) return null;
 
@@ -93,48 +138,51 @@ export function ChatDialog({
 
   return (
     <div className="auth-overlay" role="dialog" aria-modal="true">
-      <div className="auth-dialog chat-dialog" style={{ display: 'flex', flexDirection: 'column', height: '400px' }}>
+      <div className="auth-dialog chat-dialog">
         
-        <div className="auth-topbar">
-          <h2>Chat about: {listing.title}</h2>
-          <button className="auth-close" onClick={handleClose}>x</button>
+        <div className="chat-dialog-header">
+          <div>
+            <p>{t("chat.conversation")}</p>
+            <h2>{listing.title}</h2>
+          </div>
+          <button className="auth-close" onClick={handleClose} aria-label={t("chat.close")}>x</button>
         </div>
 
         {error ? <p className="auth-error">{error}</p> : null}
 
-        <div style={{ flex: 1, overflowY: 'auto', marginBottom: '1rem', border: '1px solid #cbd5e1', borderRadius: '0.5rem', padding: '0.5rem' }}>
+        <div className="chat-dialog-messages">
           {roomMessages.length === 0 && !error ? (
-            <p style={{ color: '#64748b', textAlign: 'center', marginTop: '2rem' }}>Send a message to start chatting!</p>
+            <p className="chat-dialog-empty">{t("chat.empty")}</p>
           ) : (
             roomMessages.map((msg, idx) => {
               const isMine = msg.sender_id === currentUserId;
+              const seenAt = msg.id !== undefined ? msg.seen_at || receiptSeenByMessageId.get(msg.id) : null;
               return (
-                <div key={msg.id ?? `local-${idx}`} style={{ textAlign: isMine ? 'right' : 'left', marginBottom: '0.5rem' }}>
-                  <span style={{ 
-                    display: 'inline-block', 
-                    background: isMine ? '#0ea5e9' : '#e2e8f0', 
-                    color: isMine ? '#fff' : '#0f172a',
-                    padding: '0.4rem 0.8rem', 
-                    borderRadius: '1rem' 
-                  }}>
+                <div key={msg.id ?? `local-${idx}`} className={`chat-dialog-row ${isMine ? "mine" : "theirs"}`}>
+                  <span className={`chat-dialog-bubble ${isMine ? "mine" : "theirs"}`}>
                     {msg.content}
+                    <span className="chat-dialog-time">{formatMessageTime(msg.timestamp, locale)}</span>
                   </span>
+                  {isMine && msg.id === latestSeenOwnMessageId ? (
+                    <span className="message-seen">
+                      {t("chat.seen", { time: formatMessageTime(seenAt, locale) })}
+                    </span>
+                  ) : null}
                 </div>
               );
             })
           )}
         </div>
 
-        <form style={{ display: 'flex', gap: '0.5rem' }} onSubmit={handleSend}>
+        <form className="chat-dialog-form" onSubmit={handleSend}>
           <input 
-            style={{ flex: 1, border: '1px solid #cbd5e1', borderRadius: '0.5rem', padding: '0.5rem' }}
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
-            placeholder="Type a message..."
+            placeholder={t("chat.placeholder")}
             disabled={!roomId}
           />
           <button className="auth-submit" type="submit" disabled={!roomId || !draft.trim()}>
-            Send
+            {t("chat.send")}
           </button>
         </form>
 

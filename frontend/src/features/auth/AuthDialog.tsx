@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useI18n } from "../../i18n/I18nProvider";
 import { loginWithEmail, registerUser } from "./api";
 import type { AuthSession } from "./session";
 
@@ -11,6 +12,7 @@ type AuthDialogProps = {
 type Mode = "signin" | "signup";
 
 export function AuthDialog({ open, onClose, onSignedIn }: AuthDialogProps) {
+  const { t } = useI18n();
   const [mode, setMode] = useState<Mode>("signin");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -53,8 +55,8 @@ export function AuthDialog({ open, onClose, onSignedIn }: AuthDialogProps) {
     } catch {
       setError(
         mode === "signup"
-          ? "Could not sign up. Check your details and try again."
-          : "Invalid email or password.",
+          ? t("auth.signUpError")
+          : t("auth.signInError"),
       );
     } finally {
       setLoading(false);
@@ -62,10 +64,10 @@ export function AuthDialog({ open, onClose, onSignedIn }: AuthDialogProps) {
   }
 
   return (
-    <div className="auth-overlay" role="dialog" aria-modal="true" aria-label="Authentication">
+    <div className="auth-overlay" role="dialog" aria-modal="true" aria-label={t("auth.dialog")}>
       <div className="auth-dialog">
         <div className="auth-topbar">
-          <div className="auth-tabs" role="tablist" aria-label="Auth actions">
+          <div className="auth-tabs" role="tablist" aria-label={t("auth.actions")}>
             <button
               type="button"
               className={`auth-tab ${mode === "signin" ? "active" : ""}`}
@@ -74,7 +76,7 @@ export function AuthDialog({ open, onClose, onSignedIn }: AuthDialogProps) {
                 setError(null);
               }}
             >
-              Sign in
+              {t("auth.signIn")}
             </button>
             <button
               type="button"
@@ -84,10 +86,10 @@ export function AuthDialog({ open, onClose, onSignedIn }: AuthDialogProps) {
                 setError(null);
               }}
             >
-              Sign up
+              {t("auth.signUp")}
             </button>
           </div>
-          <button type="button" className="auth-close" onClick={onClose} aria-label="Close dialog">
+          <button type="button" className="auth-close" onClick={onClose} aria-label={t("auth.close")}>
             x
           </button>
         </div>
@@ -96,18 +98,18 @@ export function AuthDialog({ open, onClose, onSignedIn }: AuthDialogProps) {
           {mode === "signup" ? (
             <>
               <label>
-                <span>Name</span>
+                <span>{t("auth.name")}</span>
                 <input value={name} onChange={(event) => setName(event.target.value)} required />
               </label>
               <label>
-                <span>UniPd ID (optional)</span>
+                <span>{t("auth.unipdId")}</span>
                 <input value={unipdId} onChange={(event) => setUnipdId(event.target.value)} />
               </label>
             </>
           ) : null}
 
           <label>
-            <span>Email</span>
+            <span>{t("auth.email")}</span>
             <input
               type="email"
               value={email}
@@ -117,7 +119,7 @@ export function AuthDialog({ open, onClose, onSignedIn }: AuthDialogProps) {
           </label>
 
           <label>
-            <span>Password</span>
+            <span>{t("auth.password")}</span>
             <input
               type="password"
               value={password}
@@ -129,7 +131,11 @@ export function AuthDialog({ open, onClose, onSignedIn }: AuthDialogProps) {
           {error ? <p className="auth-error">{error}</p> : null}
 
           <button className="auth-submit" type="submit" disabled={loading}>
-            {loading ? "Please wait..." : mode === "signup" ? "Create account" : "Sign in"}
+            {loading
+              ? t("auth.pleaseWait")
+              : mode === "signup"
+                ? t("auth.createAccount")
+                : t("auth.signIn")}
           </button>
         </form>
       </div>

@@ -118,6 +118,7 @@ class Message(Base):
     content = Column(Text)
     image_url = Column(String, nullable=True)
     timestamp = Column(DateTime(timezone=True), server_default=func.now())
+    seen_at = Column(DateTime(timezone=True), nullable=True)
     
     room_id = Column(Integer, ForeignKey("chat_rooms.id", ondelete="CASCADE"))
     sender_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"))

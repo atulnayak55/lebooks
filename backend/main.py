@@ -6,6 +6,7 @@ from pathlib import Path
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy import inspect, text
 from database.database import engine
 from database import models
 
@@ -17,9 +18,21 @@ BASE_DIR = Path(__file__).resolve().parent
 UPLOAD_DIR = BASE_DIR / "uploads"
 
 
+def ensure_lightweight_schema_updates() -> None:
+    inspector = inspect(engine)
+    if "messages" not in inspector.get_table_names():
+        return
+
+    message_columns = {column["name"] for column in inspector.get_columns("messages")}
+    if "seen_at" not in message_columns:
+        with engine.begin() as connection:
+            connection.execute(text("ALTER TABLE messages ADD COLUMN seen_at TIMESTAMP WITH TIME ZONE"))
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     models.Base.metadata.create_all(bind=engine)
+    ensure_lightweight_schema_updates()
     yield
 
 app = FastAPI(

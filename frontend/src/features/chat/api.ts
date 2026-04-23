@@ -28,6 +28,7 @@ export type MessageResponse = {
   sender_id: number;
   room_id: number;
   timestamp: string;
+  seen_at?: string | null;
 };
 
 export async function createOrGetChatRoom(payload: ChatRoomCreatePayload, token: string): Promise<ChatRoomResponse> {
@@ -50,6 +51,12 @@ export async function fetchChatHistory(roomId: number, token: string): Promise<M
     headers: { Authorization: `Bearer ${token}` },
   });
   return response.data;
+}
+
+export async function markChatRoomRead(roomId: number, token: string): Promise<void> {
+  await api.post(`/chat/rooms/${roomId}/read`, null, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
 }
 
 export async function uploadChatImage(

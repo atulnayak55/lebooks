@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import type { AuthSession } from "../features/auth/session";
 import { deleteListing, fetchListings } from "../features/listings/api";
 import { isOwnListing } from "../features/listings/filter";
+import { useI18n } from "../i18n/I18nProvider";
 import { backendBaseUrl } from "../lib/api";
 import type { Listing } from "../types/domain";
 import { formatEuro } from "../utils/format";
@@ -12,6 +13,7 @@ type MyListingsPageProps = {
 };
 
 export function MyListingsPage({ session }: MyListingsPageProps) {
+  const { locale, t } = useI18n();
   const [myListings, setMyListings] = useState<Listing[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -40,31 +42,31 @@ export function MyListingsPage({ session }: MyListingsPageProps) {
   async function handleDelete(listingId: number) {
     if (!session) return;
 
-    const confirmed = window.confirm("Are you sure you want to delete this listing?");
+    const confirmed = window.confirm(t("myListings.deleteConfirm"));
     if (!confirmed) return;
 
     try {
       await deleteListing(listingId, session.token);
       setMyListings((prev) => prev.filter((listing) => listing.id !== listingId));
     } catch {
-      alert("Failed to delete listing.");
+      alert(t("myListings.deleteFailed"));
     }
   }
 
   if (!session) {
-    return <p className="inbox-empty">Please sign in to view your listings.</p>;
+    return <p className="inbox-empty">{t("myListings.signInRequired")}</p>;
   }
 
   if (loading) {
-    return <p className="inbox-empty">Loading your books...</p>;
+    return <p className="inbox-empty">{t("myListings.loading")}</p>;
   }
 
   return (
     <div className="listings-page">
       {myListings.length === 0 ? (
         <div className="status-message">
-          <p className="status-title">You do not have any active listings.</p>
-          <p className="status-subtitle">Head to Marketplace to sell a book.</p>
+          <p className="status-title">{t("myListings.empty")}</p>
+          <p className="status-subtitle">{t("myListings.emptySubtitle")}</p>
         </div>
       ) : (
         <div className="listings-grid">
@@ -78,22 +80,24 @@ export function MyListingsPage({ session }: MyListingsPageProps) {
                     className="listing-image-preview"
                   />
                 ) : (
-                  <span className="listing-image-empty">No image</span>
+                  <span className="listing-image-empty">{t("card.noImage")}</span>
                 )}
               </div>
 
               <div className="listing-head">
                 <h2>{listing.title}</h2>
-                <p className="listing-price">{formatEuro(listing.price)}</p>
+                <p className="listing-price">{formatEuro(listing.price, locale)}</p>
               </div>
-              <p className="listing-condition">Condition: {listing.condition}</p>
+              <p className="listing-condition">
+                {t("sell.condition")}: {t(`card.condition.${listing.condition}`)}
+              </p>
 
               <button
                 type="button"
                 className="my-listings-delete"
                 onClick={() => handleDelete(listing.id)}
               >
-                Delete Listing
+                {t("myListings.delete")}
               </button>
             </article>
           ))}

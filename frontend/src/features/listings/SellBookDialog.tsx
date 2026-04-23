@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useI18n } from "../../i18n/I18nProvider";
 import { fetchPrograms } from "../taxonomy/api";
 import { createListing, uploadListingImages } from "./api";
 import type { Department, Program } from "../../types/domain";
@@ -27,6 +28,7 @@ export function SellBookDialog({
   onClose,
   onCreated,
 }: SellBookDialogProps) {
+  const { t } = useI18n();
   const [title, setTitle] = useState("");
   const [price, setPrice] = useState<string>("");
   const [condition, setCondition] = useState("good");
@@ -71,7 +73,7 @@ export function SellBookDialog({
         const data = await fetchPrograms(selectedDepartment);
         setPrograms(data);
       } catch {
-        setError("Could not load programs for the selected department.");
+        setError(t("sell.errorPrograms"));
       } finally {
         setLoadingPrograms(false);
       }
@@ -101,12 +103,12 @@ export function SellBookDialog({
     const parsedPrice = Number(price);
 
     if (!subjectId) {
-      setError("Please select a course.");
+      setError(t("sell.errorCourse"));
       return;
     }
 
     if (!Number.isFinite(parsedPrice) || parsedPrice <= 0) {
-      setError("Please enter a valid price.");
+      setError(t("sell.errorPrice"));
       return;
     }
 
@@ -133,17 +135,17 @@ export function SellBookDialog({
       resetForm();
       onClose();
     } catch {
-      setError("Could not create listing. Please verify your data and try again.");
+      setError(t("sell.errorCreate"));
     } finally {
       setSubmitting(false);
     }
   }
 
   return (
-    <div className="sell-overlay" role="dialog" aria-modal="true" aria-label="Sell book">
+    <div className="sell-overlay" role="dialog" aria-modal="true" aria-label={t("sell.dialog")}>
       <div className="sell-dialog">
         <div className="sell-topbar">
-          <h2>Sell a Book</h2>
+          <h2>{t("sell.title")}</h2>
           <button
             type="button"
             className="sell-close"
@@ -151,7 +153,7 @@ export function SellBookDialog({
               resetForm();
               onClose();
             }}
-            aria-label="Close"
+            aria-label={t("sell.close")}
           >
             x
           </button>
@@ -159,12 +161,12 @@ export function SellBookDialog({
 
         <form className="sell-form" onSubmit={handleSubmit}>
           <label>
-            <span>Title</span>
+            <span>{t("sell.bookTitle")}</span>
             <input value={title} onChange={(event) => setTitle(event.target.value)} required />
           </label>
 
           <label>
-            <span>Price (EUR)</span>
+            <span>{t("sell.price")}</span>
             <input
               type="number"
               min="0"
@@ -176,17 +178,17 @@ export function SellBookDialog({
           </label>
 
           <label>
-            <span>Condition</span>
+            <span>{t("sell.condition")}</span>
             <select value={condition} onChange={(event) => setCondition(event.target.value)} required>
-              <option value="new">new</option>
-              <option value="good">good</option>
-              <option value="fair">fair</option>
-              <option value="used">used</option>
+              <option value="new">{t("card.condition.new")}</option>
+              <option value="good">{t("card.condition.good")}</option>
+              <option value="fair">{t("card.condition.fair")}</option>
+              <option value="used">{t("card.condition.used")}</option>
             </select>
           </label>
 
           <label>
-            <span>Description</span>
+            <span>{t("sell.description")}</span>
             <textarea
               rows={3}
               value={description}
@@ -195,7 +197,7 @@ export function SellBookDialog({
           </label>
 
           <label>
-            <span>Book Images (optional)</span>
+            <span>{t("sell.images")}</span>
             <input
               type="file"
               accept="image/*"
@@ -211,14 +213,17 @@ export function SellBookDialog({
             />
             {imageFiles.length > 0 ? (
               <small>
-                {imageFiles.length} image(s) selected: {imageFiles.map((file) => file.name).join(", ")}
+                {t("sell.imagesSelected", {
+                  count: imageFiles.length,
+                  names: imageFiles.map((file) => file.name).join(", "),
+                })}
               </small>
             ) : null}
           </label>
 
           <div className="sell-filters">
             <label>
-              <span>Department</span>
+              <span>{t("sell.department")}</span>
               <select
                 value={departmentId}
                 onChange={(event) => {
@@ -228,7 +233,7 @@ export function SellBookDialog({
                 }}
                 required
               >
-                <option value="">Select department</option>
+                <option value="">{t("sell.selectDepartment")}</option>
                 {departments.map((department) => (
                   <option key={department.id} value={String(department.id)}>
                     {department.name}
@@ -238,7 +243,7 @@ export function SellBookDialog({
             </label>
 
             <label>
-              <span>Program</span>
+              <span>{t("sell.program")}</span>
               <select
                 value={programId}
                 onChange={(event) => {
@@ -248,7 +253,7 @@ export function SellBookDialog({
                 disabled={!departmentId || loadingPrograms}
                 required
               >
-                <option value="">Select program</option>
+                <option value="">{t("sell.selectProgram")}</option>
                 {programs.map((program) => (
                   <option key={program.id} value={String(program.id)}>
                     {program.name}
@@ -258,14 +263,14 @@ export function SellBookDialog({
             </label>
 
             <label>
-              <span>Course</span>
+              <span>{t("sell.course")}</span>
               <select
                 value={courseId}
                 onChange={(event) => setCourseId(event.target.value)}
                 disabled={!programId || loadingPrograms}
                 required
               >
-                <option value="">Select course</option>
+                <option value="">{t("sell.selectCourse")}</option>
                 {courses.map((course) => (
                   <option key={course.id} value={String(course.id)}>
                     {course.name}
@@ -278,7 +283,7 @@ export function SellBookDialog({
           {error ? <p className="sell-error">{error}</p> : null}
 
           <button type="submit" className="sell-submit" disabled={submitting}>
-            {submitting ? "Saving..." : "Publish Listing"}
+            {submitting ? t("sell.saving") : t("sell.publish")}
           </button>
         </form>
       </div>

@@ -6,6 +6,7 @@ from pathlib import Path
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Depends, HTTPException, UploadFile, File, Form, status
 from sqlalchemy import or_
 from sqlalchemy.orm import Session
+from sqlalchemy.sql import func
 from typing import Dict, List
 
 from database.database import get_db
@@ -39,6 +40,19 @@ class ConnectionManager:
             print(f"FAILED: User {user_id} is not in active_connections.")
 
 manager = ConnectionManager()
+
+
+def message_to_payload(message: models.Message) -> dict:
+    return {
+        "id": message.id,
+        "content": message.content,
+        "image_url": message.image_url,
+        "sender_id": message.sender_id,
+        "room_id": message.room_id,
+        "timestamp": message.timestamp.isoformat() if message.timestamp else None,
+        "seen_at": message.seen_at.isoformat() if message.seen_at else None,
+    }
+
 
 # --- NEW HTTP ROUTE (This will show up in Swagger) ---
 @router.post("/rooms", response_model=chat_schemas.ChatRoomResponse)
@@ -110,6 +124,49 @@ def get_chat_history(
     return messages
 
 
+@router.post("/rooms/{room_id}/read", response_model=chat_schemas.ReadReceiptResponse)
+async def mark_room_messages_read(
+    room_id: int,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
+):
+    """Mark messages from the other participant as seen."""
+    room = db.query(models.ChatRoom).filter(models.ChatRoom.id == room_id).first()
+    if not room:
+        raise HTTPException(status_code=404, detail="Room not found")
+
+    if current_user.id not in [room.buyer_id, room.seller_id]:
+        raise HTTPException(status_code=403, detail="Not authorized for this room")
+
+    messages = db.query(models.Message).filter(
+        models.Message.room_id == room_id,
+        models.Message.sender_id != current_user.id,
+        models.Message.seen_at.is_(None),
+    ).all()
+
+    seen_at = db.query(func.now()).scalar()
+    message_ids: List[int] = []
+    sender_ids: set[int] = set()
+
+    for message in messages:
+        message.seen_at = seen_at
+        message_ids.append(message.id)
+        sender_ids.add(message.sender_id)
+
+    db.commit()
+
+    receipt = {
+        "type": "read_receipt",
+        "room_id": room_id,
+        "message_ids": message_ids,
+        "seen_at": seen_at.isoformat(),
+    }
+    for sender_id in sender_ids:
+        await manager.send_personal_message(receipt, sender_id)
+
+    return {"room_id": room_id, "message_ids": message_ids, "seen_at": seen_at}
+
+
 @router.post("/rooms/{room_id}/messages/image", response_model=chat_schemas.MessageResponse)
 async def upload_chat_image(
     room_id: int,
@@ -150,14 +207,7 @@ async def upload_chat_image(
     db.commit()
     db.refresh(db_message)
 
-    full_message = {
-        "id": db_message.id,
-        "content": db_message.content,
-        "image_url": db_message.image_url,
-        "sender_id": db_message.sender_id,
-        "room_id": db_message.room_id,
-        "timestamp": db_message.timestamp.isoformat() if db_message.timestamp else None,
-    }
+    full_message = message_to_payload(db_message)
     await manager.send_personal_message(full_message, receiver_id)
 
     return db_message
@@ -208,16 +258,10 @@ async def websocket_endpoint(
             db.commit()
             db.refresh(db_message)
 
-            full_message = {
-                "id": db_message.id,
-                "content": db_message.content,
-                "image_url": db_message.image_url,
-                "sender_id": db_message.sender_id,
-                "room_id": db_message.room_id,
-                "timestamp": db_message.timestamp.isoformat() if db_message.timestamp else None
-            }
+            full_message = message_to_payload(db_message)
 
-            # Forward the complete persisted message to receiver
+            # Echo the persisted message to both participants so IDs match read receipts.
+            await manager.send_personal_message(full_message, user_id)
             await manager.send_personal_message(full_message, receiver_id)
     except WebSocketDisconnect:
         manager.disconnect(user_id)
