@@ -13,6 +13,7 @@ type MainLayoutProps = {
   onViewChange: (view: "listings" | "inbox" | "mylistings") => void;
   session: AuthSession | null;
   onSessionChange: (session: AuthSession | null) => void;
+  unreadInboxCount: number;
 };
 
 export function MainLayout({
@@ -21,6 +22,7 @@ export function MainLayout({
   onViewChange,
   session,
   onSessionChange,
+  unreadInboxCount,
 }: MainLayoutProps) {
   const [dialogOpen, setDialogOpen] = useState(false);
 
@@ -62,7 +64,12 @@ export function MainLayout({
                     color: currentView === "inbox" ? "#0f172a" : "inherit",
                   }}
                 >
-                  Inbox
+                  <span className="nav-button-label">Inbox</span>
+                  {unreadInboxCount > 0 ? (
+                    <span className="inbox-badge" aria-label={`${unreadInboxCount} unread messages`}>
+                      {unreadInboxCount > 99 ? "99+" : unreadInboxCount}
+                    </span>
+                  ) : null}
                 </button>
                 <button
                   className="auth-signin"

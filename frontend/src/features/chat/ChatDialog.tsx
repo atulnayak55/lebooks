@@ -1,6 +1,6 @@
 import { useMemo, useState, useEffect } from "react";
-import { useWebSocket } from "../../hooks/useWebSocket";
 import { createOrGetChatRoom, fetchChatHistory, type ChatRoomResponse, type MessageResponse } from "./api";
+import type { useWebSocket } from "../../hooks/useWebSocket";
 import type { Listing } from "../../types/domain";
 
 type ChatDialogProps = {
@@ -8,18 +8,25 @@ type ChatDialogProps = {
   listing: Listing | null;
   currentUserId: number; // The ID of the logged-in buyer
   token: string;
+  chatConnection: ReturnType<typeof useWebSocket>;
   onClose: () => void;
 };
 
-export function ChatDialog({ open, listing, currentUserId, token, onClose }: ChatDialogProps) {
+export function ChatDialog({
+  open,
+  listing,
+  currentUserId,
+  token,
+  chatConnection,
+  onClose,
+}: ChatDialogProps) {
   const [roomId, setRoomId] = useState<number | null>(null);
   const [roomInfo, setRoomInfo] = useState<ChatRoomResponse | null>(null);
   const [history, setHistory] = useState<MessageResponse[]>([]);
   const [draft, setDraft] = useState("");
   const [error, setError] = useState<string | null>(null);
 
-  // Connect to the WebSocket using our custom hook!
-  const { messages, sendMessage } = useWebSocket(currentUserId, token);
+  const { messages, sendMessage } = chatConnection;
 
   // When the dialog opens, ping the backend to create/fetch the room
   useEffect(() => {

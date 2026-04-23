@@ -9,6 +9,7 @@ import { isOwnListing } from "../features/listings/filter";
 import { fetchListings } from "../features/listings/api";
 import { SellBookDialog } from "../features/listings/SellBookDialog";
 import { fetchDepartments, fetchPrograms } from "../features/taxonomy/api";
+import type { useWebSocket } from "../hooks/useWebSocket";
 import type { Course, Department, Listing, Program } from "../types/domain";
 
 function toId(value: string): number | undefined {
@@ -22,9 +23,10 @@ function toId(value: string): number | undefined {
 
 type ListingsPageProps = {
   authSession: AuthSession | null;
+  chatConnection: ReturnType<typeof useWebSocket>;
 };
 
-export function ListingsPage({ authSession }: ListingsPageProps) {
+export function ListingsPage({ authSession, chatConnection }: ListingsPageProps) {
   const [departments, setDepartments] = useState<Department[]>([]);
   const [programs, setPrograms] = useState<Program[]>([]);
   const [listings, setListings] = useState<Listing[]>([]);
@@ -276,6 +278,7 @@ export function ListingsPage({ authSession }: ListingsPageProps) {
         listing={chatListing}
         currentUserId={authSession?.userId ?? 0}
         token={authSession?.token ?? ""}
+        chatConnection={chatConnection}
         onClose={() => {
           setChatDialogOpen(false);
           setChatListing(null);

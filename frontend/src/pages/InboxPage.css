@@ -1,16 +1,19 @@
 .inbox-container {
-  display: flex;
-  height: 600px;
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
-  border-radius: 0.9rem;
+  display: grid;
+  grid-template-columns: minmax(220px, 300px) minmax(0, 1fr);
+  height: min(68dvh, 640px);
+  min-height: 460px;
+  background: #fffdf8;
+  border: 1px solid #e4d8c7;
+  border-radius: 8px;
   overflow: hidden;
+  min-width: 0;
 }
 
 .inbox-sidebar {
-  width: 300px;
-  border-right: 1px solid #e2e8f0;
-  background: #f8fafc;
+  min-width: 0;
+  border-right: 1px solid #e4d8c7;
+  background: #f7efe3;
   display: flex;
   flex-direction: column;
   overflow-y: auto;
@@ -20,27 +23,33 @@
   padding: 1rem;
   margin: 0;
   font-size: 1.1rem;
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: 1px solid #e4d8c7;
+  color: #183a37;
 }
 
 .inbox-room-btn {
   padding: 1rem;
   border: none;
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: 1px solid #e4d8c7;
   background: transparent;
   text-align: left;
   cursor: pointer;
   transition: background 0.2s;
 }
 
-.inbox-room-btn:hover { background: #f1f5f9; }
-.inbox-room-btn.active { background: #e0f2fe; border-left: 4px solid #0ea5e9; }
+.inbox-room-btn:hover { background: #fffaf2; }
+.inbox-room-btn.active { background: #d9efe8; border-left: 4px solid #183a37; }
 
-.room-listing { font-weight: bold; margin-bottom: 0.25rem; color: #0f172a; }
-.room-person { font-size: 0.85rem; color: #64748b; }
+.room-listing {
+  font-weight: bold;
+  margin-bottom: 0.25rem;
+  color: #1f2933;
+  overflow-wrap: anywhere;
+}
+.room-person { font-size: 0.85rem; color: #6d7a7a; overflow-wrap: anywhere; }
 
 .inbox-main {
-  flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
 }
@@ -48,27 +57,33 @@
 .inbox-empty {
   padding: 2rem;
   text-align: center;
-  color: #64748b;
+  color: #6d7a7a;
   margin: auto;
 }
 
 .inbox-header {
   padding: 1rem;
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: 1px solid #e4d8c7;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: #f8fafc;
+  background: #fffaf2;
+  gap: 0.75rem;
+  min-width: 0;
 }
 
-.inbox-header h3 { margin: 0; font-size: 1.1rem; }
+.inbox-header h3 {
+  margin: 0;
+  font-size: 1.1rem;
+  overflow-wrap: anywhere;
+}
 
 .delete-listing-chat-button {
   border: none;
-  background: #ef4444;
-  color: #ffffff;
+  background: #b65038;
+  color: #fffaf2;
   padding: 0.5rem 0.9rem;
-  border-radius: 0.5rem;
+  border-radius: 8px;
   cursor: pointer;
   font-weight: 700;
 }
@@ -85,12 +100,13 @@
 .message-bubble {
   max-width: 70%;
   padding: 0.6rem 1rem;
-  border-radius: 1rem;
+  border-radius: 8px;
+  overflow-wrap: anywhere;
 }
 
 .message-image {
-  max-width: 200px;
-  border-radius: 0.5rem;
+  max-width: min(220px, 100%);
+  border-radius: 8px;
   display: block;
   margin-bottom: 0.5rem;
   cursor: zoom-in;
@@ -98,36 +114,39 @@
 
 .message-bubble.mine {
   align-self: flex-end;
-  background: #0ea5e9;
-  color: white;
+  background: #183a37;
+  color: #fffaf2;
 }
 
 .message-bubble.theirs {
   align-self: flex-start;
-  background: #e2e8f0;
-  color: #0f172a;
+  background: #f7efe3;
+  color: #1f2933;
 }
 
 .inbox-form {
   display: flex;
   padding: 1rem;
-  border-top: 1px solid #e2e8f0;
+  border-top: 1px solid #e4d8c7;
   gap: 0.5rem;
+  min-width: 0;
 }
 
 .inbox-form input {
   flex: 1;
+  min-width: 0;
   padding: 0.7rem;
-  border: 1px solid #cbd5e1;
-  border-radius: 0.5rem;
+  border: 1px solid #d7c7b4;
+  border-radius: 8px;
+  background: #fffdf8;
 }
 
 .inbox-form button {
-  padding: 0.7rem 1.5rem;
-  background: #0ea5e9;
-  color: white;
+  padding: 0.7rem 1rem;
+  background: #183a37;
+  color: #fffaf2;
   border: none;
-  border-radius: 0.5rem;
+  border-radius: 8px;
   font-weight: bold;
   cursor: pointer;
 }
@@ -137,13 +156,13 @@
 .attach-button {
   cursor: pointer;
   padding: 0.7rem;
-  background: #e2e8f0;
-  border-radius: 0.5rem;
+  background: #d9efe8;
+  border-radius: 8px;
   display: grid;
   place-items: center;
   min-width: 2.5rem;
   font-weight: 700;
-  color: #0f172a;
+  color: #183a37;
 }
 
 .chat-image-preview {
@@ -169,7 +188,61 @@
   max-width: min(92vw, 1100px);
   max-height: 90vh;
   object-fit: contain;
-  border-radius: 0.7rem;
-  border: 1px solid #475569;
-  background: #020617;
+  border-radius: 8px;
+  border: 1px solid #52616b;
+  background: #111820;
+}
+
+@media (max-width: 760px) {
+  .inbox-container {
+    grid-template-columns: 1fr;
+    height: auto;
+    min-height: 0;
+  }
+
+  .inbox-sidebar {
+    max-height: 14rem;
+    border-right: none;
+    border-bottom: 1px solid #e4d8c7;
+  }
+
+  .inbox-main {
+    min-height: 58dvh;
+  }
+
+  .inbox-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .delete-listing-chat-button {
+    width: 100%;
+  }
+
+  .inbox-messages {
+    min-height: 18rem;
+  }
+
+  .message-bubble {
+    max-width: 88%;
+  }
+}
+
+@media (max-width: 460px) {
+  .inbox-title,
+  .inbox-room-btn,
+  .inbox-header,
+  .inbox-messages,
+  .inbox-form {
+    padding: 0.75rem;
+  }
+
+  .inbox-form {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .inbox-form button[type="submit"] {
+    grid-column: 1 / -1;
+  }
 }

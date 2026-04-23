@@ -1,23 +1,26 @@
 .listings-page {
   display: grid;
   gap: 1rem;
+  min-width: 0;
 }
 
 .listings-toolbar {
   display: flex;
   align-items: end;
   gap: 0.75rem;
+  min-width: 0;
 }
 
 .toolbar-search {
   flex: 1;
+  min-width: 0;
 }
 
 .sell-book-button {
-  border: 1px solid #0f766e;
-  background: #0f766e;
-  color: #ffffff;
-  border-radius: 0.75rem;
+  border: 1px solid #183a37;
+  background: #183a37;
+  color: #fffaf2;
+  border-radius: 8px;
   padding: 0.7rem 0.95rem;
   font: inherit;
   font-weight: 700;
@@ -35,6 +38,7 @@
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 0.75rem;
+  min-width: 0;
 }
 
 .search-wrap,
@@ -52,41 +56,47 @@
 
 .search-input,
 .select-input {
-  border: 1px solid #cbd5e1;
-  border-radius: 0.75rem;
+  width: 100%;
+  min-width: 0;
+  border: 1px solid #d7c7b4;
+  border-radius: 8px;
   padding: 0.7rem 0.8rem;
   font: inherit;
-  background: #fff;
-  color: #0f172a;
+  background: #fffdf8;
+  color: #1f2933;
 }
 
 .search-input:focus,
 .select-input:focus {
-  outline: 2px solid #0ea5e9;
+  outline: 2px solid #6ea99a;
   outline-offset: 1px;
-  border-color: #0ea5e9;
+  border-color: #6ea99a;
 }
 
 .listings-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: 0.85rem;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 250px), 1fr));
+  gap: 0.9rem;
+  min-width: 0;
 }
 
 .listing-card {
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
-  border-radius: 0.9rem;
+  min-width: 0;
+  background: #fffdf8;
+  border: 1px solid #e4d8c7;
+  border-radius: 8px;
   padding: 1rem;
   display: grid;
   gap: 0.55rem;
+  box-shadow: 0 12px 24px rgba(31, 41, 51, 0.08);
 }
 
 .listing-image-shell {
-  height: 180px;
-  background-color: #f1f5f9;
-  border: 1px solid #dbe5ef;
-  border-radius: 0.5rem;
+  height: auto;
+  aspect-ratio: 4 / 3;
+  background-color: #f7efe3;
+  border: 1px solid #e4d8c7;
+  border-radius: 8px;
   overflow: hidden;
   margin-bottom: 0.5rem;
   display: flex;
@@ -108,7 +118,7 @@
 }
 
 .listing-image-empty {
-  color: #94a3b8;
+  color: #8d7c6a;
   font-size: 0.9rem;
 }
 
@@ -135,8 +145,8 @@
   max-height: 85vh;
   border-radius: 0.9rem;
   overflow: hidden;
-  background: #0f172a;
-  border: 1px solid #334155;
+  background: #1f2933;
+  border: 1px solid #52616b;
 }
 
 .listing-lightbox-image {
@@ -144,7 +154,7 @@
   width: 100%;
   height: min(85vh, 700px);
   object-fit: contain;
-  background: #020617;
+  background: #111820;
 }
 
 .listing-lightbox-close {
@@ -209,13 +219,14 @@
   margin: 0;
   font-size: 1rem;
   line-height: 1.3;
-  color: #0f172a;
+  color: #1f2933;
+  overflow-wrap: anywhere;
 }
 
 .listing-price {
   margin: 0;
   font-weight: 700;
-  color: #0f766e;
+  color: #b65038;
   white-space: nowrap;
 }
 
@@ -223,14 +234,15 @@
 .listing-description,
 .listing-seller {
   margin: 0;
-  color: #475569;
+  color: #52616b;
+  overflow-wrap: anywhere;
 }
 
 .status-message {
-  border: 1px dashed #cbd5e1;
-  border-radius: 0.8rem;
+  border: 1px dashed #d7c7b4;
+  border-radius: 8px;
   padding: 1rem;
-  background: #f8fafc;
+  background: #fffdf8;
 }
 
 .status-title,
@@ -240,30 +252,34 @@
 
 .status-title {
   font-weight: 600;
-  color: #0f172a;
+  color: #1f2933;
 }
 
 .status-subtitle {
   margin-top: 0.35rem;
-  color: #64748b;
+  color: #6d7a7a;
 }
 
 .sell-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(15, 23, 42, 0.5);
+  background: rgba(31, 41, 51, 0.58);
   display: grid;
   place-items: center;
   z-index: 120;
   padding: 1rem;
+  overflow-y: auto;
 }
 
 .sell-dialog {
   width: min(650px, 100%);
-  background: #ffffff;
-  border: 1px solid #dbe2ea;
-  border-radius: 0.9rem;
+  max-height: calc(100dvh - 2rem);
+  overflow-y: auto;
+  background: #fffdf8;
+  border: 1px solid #e4d8c7;
+  border-radius: 8px;
   padding: 1rem;
+  box-shadow: 0 22px 50px rgba(31, 41, 51, 0.25);
 }
 
 .sell-topbar {
@@ -275,14 +291,14 @@
 
 .sell-topbar h2 {
   margin: 0;
-  color: #0f172a;
+  color: #1f2933;
   font-size: 1.15rem;
 }
 
 .sell-close {
-  border: 1px solid #cbd5e1;
-  background: #f8fafc;
-  border-radius: 0.65rem;
+  border: 1px solid #d7c7b4;
+  background: #f7efe3;
+  border-radius: 8px;
   padding: 0.35rem 0.55rem;
   font: inherit;
   cursor: pointer;
@@ -300,19 +316,21 @@
 
 .sell-form span {
   font-size: 0.85rem;
-  color: #334155;
+  color: #52616b;
   font-weight: 600;
 }
 
 .sell-form input,
 .sell-form select,
 .sell-form textarea {
-  border: 1px solid #cbd5e1;
-  border-radius: 0.7rem;
+  width: 100%;
+  min-width: 0;
+  border: 1px solid #d7c7b4;
+  border-radius: 8px;
   padding: 0.6rem 0.7rem;
   font: inherit;
-  background: #fff;
-  color: #0f172a;
+  background: #fffdf8;
+  color: #1f2933;
 }
 
 .sell-filters {
@@ -322,10 +340,10 @@
 }
 
 .sell-submit {
-  border: 1px solid #0f766e;
-  background: #0f766e;
-  color: #ffffff;
-  border-radius: 0.7rem;
+  border: 1px solid #183a37;
+  background: #183a37;
+  color: #fffaf2;
+  border-radius: 8px;
   padding: 0.7rem 0.9rem;
   font: inherit;
   font-weight: 700;
@@ -350,7 +368,7 @@
   color: #b91c1c;
   border: 1px solid #fca5a5;
   padding: 0.6rem;
-  border-radius: 0.5rem;
+  border-radius: 8px;
   font-weight: 700;
   cursor: pointer;
 }
@@ -371,5 +389,37 @@
 
   .sell-filters {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 520px) {
+  .listings-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .listing-card {
+    padding: 0.75rem;
+  }
+
+  .listing-head {
+    display: grid;
+    gap: 0.25rem;
+  }
+
+  .listing-price {
+    white-space: normal;
+  }
+
+  .listing-lightbox {
+    padding: 0.5rem;
+  }
+
+  .listing-lightbox-content {
+    width: 100%;
+    max-height: 90dvh;
+  }
+
+  .listing-lightbox-image {
+    height: 80dvh;
   }
 }

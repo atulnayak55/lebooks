@@ -2,14 +2,15 @@ import { useEffect, useState, useMemo } from "react";
 import type { AuthSession } from "../features/auth/session";
 import { fetchChatRooms, fetchChatHistory, uploadChatImage, type ChatRoomDetail, type MessageResponse } from "../features/chat/api";
 import { deleteListing } from "../features/listings/api";
-import { useWebSocket } from "../hooks/useWebSocket";
+import type { useWebSocket } from "../hooks/useWebSocket";
 import { backendBaseUrl } from "../lib/api";
 
 type InboxPageProps = {
   session: AuthSession | null;
+  chatConnection: ReturnType<typeof useWebSocket>;
 };
 
-export function InboxPage({ session }: InboxPageProps) {
+export function InboxPage({ session, chatConnection }: InboxPageProps) {
   const userId = session?.userId;
   const token = session?.token;
 
@@ -20,8 +21,7 @@ export function InboxPage({ session }: InboxPageProps) {
   const [uploading, setUploading] = useState(false);
   const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(null);
 
-  // Connect to the WebSocket
-  const { messages: liveMessages, sendMessage, addMessage } = useWebSocket(userId, token);
+  const { messages: liveMessages, sendMessage, addMessage } = chatConnection;
 
   // Load rooms when the page opens
   useEffect(() => {

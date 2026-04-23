@@ -1,25 +1,43 @@
 :root {
   font-family: "Nunito Sans", "Segoe UI", sans-serif;
-  color: #0f172a;
-  background: #e2e8f0;
+  color: #1f2933;
+  background: #f4f1eb;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  font-size: 16px;
 }
 
 * {
   box-sizing: border-box;
 }
 
+html {
+  overflow-x: hidden;
+}
+
 body {
   margin: 0;
   min-height: 100vh;
-  background:
-    radial-gradient(circle at top right, #c7d2fe 0%, transparent 45%),
-    radial-gradient(circle at bottom left, #bae6fd 0%, transparent 40%),
-    #e2e8f0;
+  overflow-x: hidden;
+  background: #f4f1eb;
 }
 
 #root {
   min-height: 100vh;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+button {
+  -webkit-tap-highlight-color: transparent;
+}
+
+img {
+  max-width: 100%;
 }
