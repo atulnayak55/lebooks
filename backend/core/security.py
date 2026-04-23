@@ -1,6 +1,10 @@
 from passlib.context import CryptContext
 import jwt
 from datetime import datetime, timedelta, timezone
+import hashlib
+import secrets
+
+from core.config import settings
 
 # --- PASSWORD HASHING ---
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -13,10 +17,9 @@ def get_password_hash(password):
 
 
 # --- JWT TOKEN GENERATION ---
-# In a real production app, NEVER hardcode this. You would load it from a .env file!
-SECRET_KEY = "super-secret-bobooks-key-change-me-later" 
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_DAYS = 7 # Keep users logged in for a week
+SECRET_KEY = settings.jwt_secret_key
+ALGORITHM = settings.jwt_algorithm
+ACCESS_TOKEN_EXPIRE_DAYS = settings.access_token_expire_days
 
 def create_access_token(data: dict):
     """Creates a signed JSON Web Token."""
@@ -29,3 +32,11 @@ def create_access_token(data: dict):
     # Sign the token with our secret key
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
+
+
+def generate_opaque_token() -> str:
+    return secrets.token_urlsafe(32)
+
+
+def hash_opaque_token(token: str) -> str:
+    return hashlib.sha256(token.encode("utf-8")).hexdigest()

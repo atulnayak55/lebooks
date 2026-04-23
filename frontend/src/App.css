@@ -313,6 +313,44 @@
   font-size: 0.92rem;
 }
 
+.auth-success {
+  margin: 0;
+  color: #1f6f2a;
+  font-size: 0.92rem;
+}
+
+.auth-link-button {
+  justify-self: start;
+  border: none;
+  background: transparent;
+  color: var(--green-deep);
+  font-weight: 700;
+  padding: 0;
+  cursor: pointer;
+}
+
+.reset-password-shell {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 1.5rem;
+}
+
+.reset-password-card {
+  width: min(470px, 100%);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(245, 250, 240, 0.96));
+  border-radius: var(--radius-lg);
+  border: 1px solid rgba(100, 180, 79, 0.18);
+  padding: 1.4rem;
+  box-shadow: 0 26px 60px rgba(17, 20, 15, 0.2);
+}
+
+.reset-password-copy {
+  margin-top: 0;
+  margin-bottom: 1rem;
+  color: var(--muted);
+}
+
 .chat-dialog {
   width: min(600px, 100%);
   height: min(640px, calc(100dvh - 2rem));

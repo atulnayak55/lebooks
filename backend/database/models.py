@@ -1,5 +1,5 @@
 # models.py
-from sqlalchemy import Column, Integer, String, Float, DateTime, ForeignKey, Table, Text
+from sqlalchemy import Boolean, Column, Integer, String, Float, DateTime, ForeignKey, Table, Text
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from .database import Base
@@ -58,6 +58,8 @@ class User(Base):
     email = Column(String, unique=True, index=True)
     unipd_id = Column(String, unique=True, nullable=True) 
     hashed_password = Column(String)
+    is_verified = Column(Boolean, default=False, nullable=False)
+    email_verified_at = Column(DateTime(timezone=True), nullable=True)
     
     listings = relationship("Listing", back_populates="seller")
     
@@ -65,6 +67,7 @@ class User(Base):
     chats_as_buyer = relationship("ChatRoom", foreign_keys="[ChatRoom.buyer_id]", back_populates="buyer")
     chats_as_seller = relationship("ChatRoom", foreign_keys="[ChatRoom.seller_id]", back_populates="seller")
     messages = relationship("Message", back_populates="sender")
+    auth_tokens = relationship("AuthToken", back_populates="user", cascade="all, delete-orphan")
 
 class Listing(Base):
     __tablename__ = "listings"
@@ -125,3 +128,17 @@ class Message(Base):
     
     room = relationship("ChatRoom", back_populates="messages")
     sender = relationship("User", back_populates="messages")
+
+
+class AuthToken(Base):
+    __tablename__ = "auth_tokens"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    token_hash = Column(String, unique=True, nullable=False, index=True)
+    purpose = Column(String, nullable=False, index=True)
+    expires_at = Column(DateTime(timezone=True), nullable=False)
+    used_at = Column(DateTime(timezone=True), nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+
+    user = relationship("User", back_populates="auth_tokens")

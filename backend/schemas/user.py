@@ -12,6 +12,7 @@ class UserCreate(UserBase):
 
 class UserResponse(UserBase):
     id: int
+    is_verified: bool
     
     # This is the magic bridge! It tells Pydantic to read data directly from SQLAlchemy models
     model_config = ConfigDict(from_attributes=True)

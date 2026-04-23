@@ -19,7 +19,8 @@ def create_user(db: Session, user: user_schemas.UserCreate, hashed_password: str
         name=user.name,
         email=user.email,
         unipd_id=user.unipd_id,
-        hashed_password=hashed_password # Save the secure hash!
+        hashed_password=hashed_password,
+        is_verified=False,
     )
     db.add(db_user)
     db.commit()

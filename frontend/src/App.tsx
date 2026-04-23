@@ -3,6 +3,7 @@ import { MainLayout } from "./layouts/MainLayout";
 import { ListingsPage } from "./pages/ListingsPage";
 import { InboxPage } from "./pages/InboxPage"; // <-- Import it
 import { MyListingsPage } from "./pages/MyListingsPage";
+import { ResetPasswordPage } from "./pages/ResetPasswordPage";
 import { getAuthSession, type AuthSession } from "./features/auth/session";
 import { useWebSocket, type WebSocketMessage } from "./hooks/useWebSocket";
 import "./App.css";
@@ -10,10 +11,15 @@ import "./pages/ListingsPage.css";
 import "./pages/InboxPage.css"; // <-- Import styles
 
 function App() {
+  const currentPath = typeof window !== "undefined" ? window.location.pathname : "/";
   const [currentView, setCurrentView] = useState<"listings" | "inbox" | "mylistings">("listings");
   const [session, setSession] = useState<AuthSession | null>(() => getAuthSession());
   const [readIncomingMessageIds, setReadIncomingMessageIds] = useState<Set<number>>(() => new Set());
   const chatConnection = useWebSocket(session?.userId, session?.token);
+
+  if (currentPath === "/reset-password") {
+    return <ResetPasswordPage />;
+  }
 
   const unreadCount = useMemo(() => {
     if (!session || currentView === "inbox") {

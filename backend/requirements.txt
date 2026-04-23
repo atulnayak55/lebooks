@@ -7,3 +7,5 @@ psycopg2-binary
 PyJWT
 python-multipart
 email-validator
+pydantic-settings
+resend
