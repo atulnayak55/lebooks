@@ -7,6 +7,7 @@ import type { AuthSession } from "../features/auth/session";
 import { ChatDialog } from "../features/chat/ChatDialog";
 import { isOwnListing } from "../features/listings/filter";
 import { fetchListings } from "../features/listings/api";
+import { ListingDetailsDialog } from "../features/listings/ListingDetailsDialog";
 import { SellBookDialog } from "../features/listings/SellBookDialog";
 import { fetchDepartments, fetchPrograms } from "../features/taxonomy/api";
 import type { useWebSocket } from "../hooks/useWebSocket";
@@ -47,6 +48,8 @@ export function ListingsPage({ authSession, chatConnection }: ListingsPageProps)
   const [sellError, setSellError] = useState<string | null>(null);
   const [chatDialogOpen, setChatDialogOpen] = useState(false);
   const [chatListing, setChatListing] = useState<Listing | null>(null);
+  const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
+  const [detailsListing, setDetailsListing] = useState<Listing | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
 
   async function refreshListings(subjectId?: number) {
@@ -203,6 +206,22 @@ export function ListingsPage({ authSession, chatConnection }: ListingsPageProps)
     setSelectedCourseId("");
   }
 
+  function handleMessageListing(clickedListing: Listing) {
+    if (!authSession) {
+      alert(t("listings.messageToChat"));
+      return;
+    }
+
+    if (isOwnListing(clickedListing, authSession.userId)) {
+      alert(t("listings.cannotMessageSelf"));
+      return;
+    }
+
+    setChatListing(clickedListing);
+    setChatDialogOpen(true);
+    setDetailsDialogOpen(false);
+  }
+
   return (
     <section className="listings-page">
       <section className="market-controls" aria-label={t("nav.marketplace")}>
@@ -343,20 +362,11 @@ export function ListingsPage({ authSession, chatConnection }: ListingsPageProps)
               <ListingCard
                 key={listing.id}
                 listing={listing}
-                onMessageClick={(clickedListing) => {
-                  if (!authSession) {
-                    alert(t("listings.messageToChat"));
-                    return;
-                  }
-
-                  if (isOwnListing(clickedListing, authSession.userId)) {
-                    alert(t("listings.cannotMessageSelf"));
-                    return;
-                  }
-
-                  setChatListing(clickedListing);
-                  setChatDialogOpen(true);
+                onOpenDetails={(clickedListing) => {
+                  setDetailsListing(clickedListing);
+                  setDetailsDialogOpen(true);
                 }}
+                onMessageClick={handleMessageListing}
               />
             ))}
           </div>
@@ -407,6 +417,16 @@ export function ListingsPage({ authSession, chatConnection }: ListingsPageProps)
         onCreated={() => {
           void refreshListings(toId(selectedCourseId));
         }}
+      />
+
+      <ListingDetailsDialog
+        open={detailsDialogOpen}
+        listing={detailsListing}
+        onClose={() => {
+          setDetailsDialogOpen(false);
+          setDetailsListing(null);
+        }}
+        onMessageClick={handleMessageListing}
       />
 
       <ChatDialog

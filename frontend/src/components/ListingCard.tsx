@@ -7,9 +7,10 @@ import { backendBaseUrl } from "../lib/api";
 type ListingCardProps = {
   listing: Listing;
   onMessageClick?: (listing: Listing) => void;
+  onOpenDetails?: (listing: Listing) => void;
 };
 
-export function ListingCard({ listing, onMessageClick }: ListingCardProps) {
+export function ListingCard({ listing, onMessageClick, onOpenDetails }: ListingCardProps) {
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const { locale, t } = useI18n();
@@ -29,6 +30,21 @@ export function ListingCard({ listing, onMessageClick }: ListingCardProps) {
     : t("card.listedOn", {
         date: listedDate.toLocaleDateString(locale, { month: "short", day: "numeric" }),
       });
+
+  function handleCardOpen() {
+    onOpenDetails?.(listing);
+  }
+
+  function handleCardKeyDown(event: React.KeyboardEvent<HTMLElement>) {
+    if (!onOpenDetails) {
+      return;
+    }
+
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      onOpenDetails(listing);
+    }
+  }
 
   function openLightbox(index: number) {
     if (!hasImages) {
@@ -82,7 +98,13 @@ export function ListingCard({ listing, onMessageClick }: ListingCardProps) {
   }, [closeLightbox, lightboxOpen, showNextImage, showPreviousImage]);
 
   return (
-    <article className="listing-card">
+    <article
+      className={`listing-card ${onOpenDetails ? "listing-card-clickable" : ""}`}
+      onClick={onOpenDetails ? handleCardOpen : undefined}
+      onKeyDown={handleCardKeyDown}
+      tabIndex={onOpenDetails ? 0 : undefined}
+      role={onOpenDetails ? "button" : undefined}
+    >
       <div className="listing-card-topline">
         <span className="listing-tag listing-tag-primary">{conditionLabel}</span>
         <span className="listing-tag">
@@ -97,7 +119,10 @@ export function ListingCard({ listing, onMessageClick }: ListingCardProps) {
       <button
         type="button"
         className="listing-image-shell"
-        onClick={() => openLightbox(0)}
+        onClick={(event) => {
+          event.stopPropagation();
+          openLightbox(0);
+        }}
         disabled={!hasImages}
         aria-label={
           hasImages ? t("card.openImage", { title: listing.title }) : t("card.noImageAvailable")
@@ -127,12 +152,29 @@ export function ListingCard({ listing, onMessageClick }: ListingCardProps) {
         <span className="listing-seller-chip">{t("card.studentListed")}</span>
       </div>
       {onMessageClick && (
-        <button
-          className="listing-action"
-          onClick={() => onMessageClick(listing)}
-        >
-          {t("card.contactSeller")}
-        </button>
+        <div className="listing-actions">
+          {onOpenDetails ? (
+            <button
+              type="button"
+              className="listing-secondary-action"
+              onClick={(event) => {
+                event.stopPropagation();
+                onOpenDetails(listing);
+              }}
+            >
+              {t("card.viewDetails")}
+            </button>
+          ) : null}
+          <button
+            className="listing-action"
+            onClick={(event) => {
+              event.stopPropagation();
+              onMessageClick(listing);
+            }}
+          >
+            {t("card.contactSeller")}
+          </button>
+        </div>
       )}
 
       {lightboxOpen && activeImage ? (
