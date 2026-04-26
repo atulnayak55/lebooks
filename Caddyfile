@@ -1,0 +1,17 @@
+{
+    auto_https off
+    admin off
+}
+
+:80 {
+    encode zstd gzip
+
+    @api path /api/*
+    handle_path @api {
+        reverse_proxy backend:8000
+    }
+
+    root * /srv
+    try_files {path} /index.html
+    file_server
+}

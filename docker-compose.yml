@@ -1,7 +1,6 @@
 services:
   db:
     image: postgres:16-alpine
-    container_name: lebooks_db
     restart: unless-stopped
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-lebooks}
@@ -19,7 +18,6 @@ services:
     build:
       context: .
       dockerfile: backend/Dockerfile
-    container_name: lebooks_backend
     restart: unless-stopped
     depends_on:
       db:
@@ -29,21 +27,30 @@ services:
       jwt_secret_key: ${JWT_SECRET_KEY:-change-me}
       resend_api_key: ${RESEND_API_KEY:-}
       email_from: ${EMAIL_FROM:-onboarding@lebooks.it}
-      frontend_url: ${FRONTEND_URL:-http://localhost}
-      backend_base_url: ${BACKEND_BASE_URL:-http://localhost}
+      frontend_url: http://${APP_HOST:-46.225.99.187}
+      backend_base_url: http://${APP_HOST:-46.225.99.187}/api
     volumes:
       - backend_uploads:/app/backend/uploads
     expose:
       - "8000"
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "python -c \"import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health')\"",
+        ]
+      interval: 15s
+      timeout: 5s
+      retries: 5
 
-  frontend:
+  caddy:
     build:
       context: .
       dockerfile: frontend/Dockerfile
-    container_name: lebooks_frontend
     restart: unless-stopped
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
     ports:
       - "80:80"
 

@@ -1,13 +1,13 @@
 import axios from "axios";
 
-const browserHost = typeof window !== "undefined" ? window.location.hostname : "127.0.0.1";
-const browserProtocol = typeof window !== "undefined" && window.location.protocol === "https:"
-  ? "https"
-  : "http";
-const DEFAULT_BASE_URL = `${browserProtocol}://${browserHost}:8000`;
+const DEFAULT_BASE_URL = "/api";
+const configuredBaseUrl = import.meta.env.VITE_API_BASE_URL?.trim();
+const resolvedBaseUrl = (configuredBaseUrl && configuredBaseUrl.length > 0
+  ? configuredBaseUrl
+  : DEFAULT_BASE_URL).replace(/\/$/, "");
 
 export const api = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL ?? DEFAULT_BASE_URL,
+  baseURL: resolvedBaseUrl,
   timeout: 10000,
 });
 

@@ -32,6 +32,35 @@ const initialState: WebSocketState = {
   readReceipts: [],
 };
 
+function trimTrailingSlash(value: string): string {
+  return value.replace(/\/$/, "");
+}
+
+function resolveWsBaseUrl(configuredBaseUrl?: string): string {
+  const trimmedBaseUrl = configuredBaseUrl?.trim();
+  const wsProtocol = typeof window !== "undefined" && window.location.protocol === "https:"
+    ? "wss"
+    : "ws";
+
+  if (trimmedBaseUrl) {
+    if (/^wss?:\/\//.test(trimmedBaseUrl)) {
+      return trimTrailingSlash(trimmedBaseUrl);
+    }
+
+    if (trimmedBaseUrl.startsWith("/") && typeof window !== "undefined") {
+      return `${wsProtocol}://${window.location.host}${trimmedBaseUrl}`;
+    }
+
+    return trimTrailingSlash(`${wsProtocol}://${trimmedBaseUrl}`);
+  }
+
+  if (typeof window !== "undefined") {
+    return `${wsProtocol}://${window.location.host}/api`;
+  }
+
+  return "ws://127.0.0.1:8000";
+}
+
 function websocketReducer(state: WebSocketState, action: WebSocketAction): WebSocketState {
   switch (action.type) {
     case "append_message":
@@ -80,12 +109,7 @@ export function useWebSocket(userId: number | undefined, token: string | undefin
       return;
     }
 
-    const browserHost = typeof window !== "undefined" ? window.location.hostname : "127.0.0.1";
-    const wsProtocol = typeof window !== "undefined" && window.location.protocol === "https:"
-      ? "wss"
-      : "ws";
-    const defaultWsBaseUrl = `${wsProtocol}://${browserHost}:8000`;
-    const baseUrl = import.meta.env.VITE_WS_BASE_URL ?? defaultWsBaseUrl;
+    const baseUrl = resolveWsBaseUrl(import.meta.env.VITE_WS_BASE_URL);
     const wsUrl = `${baseUrl}/chat/ws?token=${encodeURIComponent(token)}`;
 
     dispatch({ type: "reset" });

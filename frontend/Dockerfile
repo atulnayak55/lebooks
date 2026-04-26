@@ -8,9 +8,9 @@ RUN npm ci
 COPY frontend /app/frontend
 RUN npm run build
 
-FROM nginx:1.27-alpine
+FROM caddy:2.8-alpine
 
-COPY frontend/nginx.conf /etc/nginx/conf.d/default.conf
-COPY --from=build /app/frontend/dist /usr/share/nginx/html
+COPY Caddyfile /etc/caddy/Caddyfile
+COPY --from=build /app/frontend/dist /srv
 
 EXPOSE 80

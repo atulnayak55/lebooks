@@ -13,7 +13,11 @@ from core.security import get_password_hash
 from schemas import auth as auth_schemas
 from schemas import user as user_schemas
 from services.email import send_password_reset_email, send_signup_otp_email
-from services.pending_signup import pending_signup_store
+from services.pending_signup import (
+    create_or_replace_pending_signup,
+    resend_pending_signup_otp,
+    verify_pending_signup,
+)
 from services.user_security import (
     EmailNotValidError,
     RESET_PASSWORD_PURPOSE,
@@ -114,7 +118,8 @@ def start_signup(
         if existing_unipd_id:
             raise HTTPException(status_code=400, detail="Unipd ID already registered")
 
-    pending_signup = pending_signup_store.create_or_replace(
+    pending_signup, otp_code = create_or_replace_pending_signup(
+        db,
         name=payload.name,
         email=normalized_email,
         unipd_id=payload.unipd_id,
@@ -123,7 +128,7 @@ def start_signup(
     send_signup_otp_email(
         recipient_email=pending_signup.email,
         recipient_name=pending_signup.name,
-        otp_code=pending_signup.otp_code,
+        otp_code=otp_code,
     )
     return {
         "message": "Verification code sent",
@@ -137,7 +142,7 @@ def verify_signup_otp(
     db: Session = Depends(get_db),
 ):
     normalized_email = normalize_email_or_400(payload.email)
-    pending_signup = pending_signup_store.verify(email=normalized_email, otp_code=payload.otp_code)
+    pending_signup = verify_pending_signup(db, email=normalized_email, otp_code=payload.otp_code)
     if not pending_signup:
         raise HTTPException(status_code=400, detail="Invalid or expired verification code")
 
@@ -175,14 +180,15 @@ def resend_signup_otp(
     if crud_user.get_user_by_email(db, email=normalized_email):
         raise HTTPException(status_code=400, detail="Email already registered")
 
-    pending_signup = pending_signup_store.resend(email=normalized_email)
-    if not pending_signup:
+    resend_result = resend_pending_signup_otp(db, email=normalized_email)
+    if not resend_result:
         raise HTTPException(status_code=404, detail="No pending signup found for this email")
+    pending_signup, otp_code = resend_result
 
     send_signup_otp_email(
         recipient_email=pending_signup.email,
         recipient_name=pending_signup.name,
-        otp_code=pending_signup.otp_code,
+        otp_code=otp_code,
     )
     return {
         "message": "Verification code resent",
