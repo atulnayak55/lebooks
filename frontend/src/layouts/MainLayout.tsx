@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import { AuthDialog } from "../features/auth/AuthDialog";
 import lebooksLogo from "../assets/lebooks.png";
 import { useI18n } from "../i18n/useI18n";
+import type { AppView } from "../types/navigation";
 import {
   clearAuthSession,
   saveAuthSession,
@@ -11,8 +12,8 @@ import {
 
 type MainLayoutProps = {
   children: ReactNode;
-  currentView: "listings" | "inbox" | "mylistings";
-  onViewChange: (view: "listings" | "inbox" | "mylistings") => void;
+  currentView: AppView;
+  onViewChange: (view: AppView) => void;
   session: AuthSession | null;
   onSessionChange: (session: AuthSession | null) => void;
   unreadInboxCount: number;
@@ -109,6 +110,15 @@ export function MainLayout({
         </div>
       </header>
       <main className="app-content">{children}</main>
+      <footer className="app-footer">
+        <button type="button" onClick={() => onViewChange("contact")}>
+          {t("footer.contact")}
+        </button>
+        <button type="button" onClick={() => onViewChange("privacy")}>
+          {t("footer.privacy")}
+        </button>
+        <span>{t("footer.pilot")}</span>
+      </footer>
       <AuthDialog
         open={dialogOpen}
         onClose={() => setDialogOpen(false)}

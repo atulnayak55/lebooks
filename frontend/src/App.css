@@ -211,6 +211,84 @@
   min-width: 0;
 }
 
+.app-footer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  padding: 1rem 0.35rem 0;
+  color: var(--muted);
+  font-size: 0.88rem;
+}
+
+.app-footer button {
+  border: none;
+  background: transparent;
+  color: var(--green-deep);
+  font: inherit;
+  font-weight: 800;
+  padding: 0.2rem;
+  cursor: pointer;
+}
+
+.app-footer button:hover {
+  text-decoration: underline;
+}
+
+.info-page {
+  width: min(760px, 100%);
+  margin: 0 auto;
+  display: grid;
+  gap: 1rem;
+}
+
+.info-page-header {
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 0.85rem;
+}
+
+.info-page-header p {
+  margin: 0 0 0.35rem;
+  color: var(--green-deep);
+  font-size: 0.75rem;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.info-page-header h1 {
+  margin: 0;
+  color: var(--ink);
+  font-size: clamp(1.7rem, 3vw, 2.4rem);
+  line-height: 1.1;
+}
+
+.info-page-body {
+  display: grid;
+  gap: 0.8rem;
+  color: var(--ink);
+  line-height: 1.65;
+}
+
+.info-page-body p {
+  margin: 0;
+}
+
+.info-page-body address {
+  font-style: normal;
+  color: var(--muted);
+  background: rgba(255, 255, 255, 0.62);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  padding: 0.85rem 1rem;
+}
+
+.info-page-body a {
+  color: var(--green-deep);
+  font-weight: 800;
+}
+
 .auth-overlay {
   position: fixed;
   inset: 0;
