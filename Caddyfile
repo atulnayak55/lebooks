@@ -5,6 +5,17 @@
 {$APP_SITE} {
     encode zstd gzip
 
+    @www host www.lebooks.it
+    redir @www https://lebooks.it{uri} permanent
+
+    header {
+        Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+        X-Content-Type-Options "nosniff"
+        X-Frame-Options "DENY"
+        Referrer-Policy "strict-origin-when-cross-origin"
+        Permissions-Policy "camera=(), microphone=(), geolocation=()"
+    }
+
     handle /api/* {
         uri strip_prefix /api
         reverse_proxy backend:8000
