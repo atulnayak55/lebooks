@@ -18,6 +18,44 @@ type AuthDialogProps = {
 
 type Mode = "signin" | "signup" | "forgotPassword";
 
+function getErrorDetail(error: unknown): string | null {
+  if (!axios.isAxiosError(error)) {
+    return null;
+  }
+
+  const detail = error.response?.data?.detail;
+  if (typeof detail === "string") {
+    return detail;
+  }
+
+  if (Array.isArray(detail)) {
+    const messages = detail
+      .map((item) => {
+        if (!item || typeof item !== "object") {
+          return null;
+        }
+
+        const message = "msg" in item && typeof item.msg === "string" ? item.msg : null;
+        const location = "loc" in item && Array.isArray(item.loc)
+          ? item.loc
+            .filter((value: unknown): value is string | number => typeof value === "string" || typeof value === "number")
+            .join(".")
+          : null;
+
+        if (!message) {
+          return null;
+        }
+
+        return location ? `${location}: ${message}` : message;
+      })
+      .filter((message): message is string => Boolean(message));
+
+    return messages.length > 0 ? messages.join(" ") : null;
+  }
+
+  return null;
+}
+
 export function AuthDialog({ open, onClose, onSignedIn }: AuthDialogProps) {
   const { t } = useI18n();
   const [mode, setMode] = useState<Mode>("signin");
@@ -88,9 +126,7 @@ export function AuthDialog({ open, onClose, onSignedIn }: AuthDialogProps) {
       onClose();
     } catch (error) {
       if (axios.isAxiosError(error)) {
-        const detail = typeof error.response?.data?.detail === "string"
-          ? error.response.data.detail
-          : null;
+        const detail = getErrorDetail(error);
 
         if (mode === "signin" && error.response?.status === 403) {
           setError(detail ?? t("auth.verifyRequired"));
@@ -128,10 +164,8 @@ export function AuthDialog({ open, onClose, onSignedIn }: AuthDialogProps) {
       const response = await resendVerification(email);
       setSuccess(response.message);
     } catch (error) {
-      if (axios.isAxiosError(error)) {
-        const detail = typeof error.response?.data?.detail === "string"
-          ? error.response.data.detail
-          : null;
+      const detail = getErrorDetail(error);
+      if (detail || axios.isAxiosError(error)) {
         setError(detail ?? t("auth.resendVerificationError"));
       } else {
         setError(t("auth.resendVerificationError"));
@@ -194,7 +228,7 @@ export function AuthDialog({ open, onClose, onSignedIn }: AuthDialogProps) {
                 <>
                   <label>
                     <span>{t("auth.name")}</span>
-                    <input value={name} onChange={(event) => setName(event.target.value)} required />
+                    <input value={name} onChange={(event) => setName(event.target.value)} maxLength={80} required />
                   </label>
                 </>
               ) : null}
@@ -207,6 +241,7 @@ export function AuthDialog({ open, onClose, onSignedIn }: AuthDialogProps) {
               type="email"
               value={email}
               onChange={(event) => setEmail(event.target.value)}
+              autoComplete="email"
               required
               disabled={mode === "signup" && signupComplete}
             />
@@ -219,6 +254,9 @@ export function AuthDialog({ open, onClose, onSignedIn }: AuthDialogProps) {
                 type="password"
                 value={password}
                 onChange={(event) => setPassword(event.target.value)}
+                autoComplete={mode === "signup" ? "new-password" : "current-password"}
+                minLength={8}
+                maxLength={128}
                 required
               />
             </label>

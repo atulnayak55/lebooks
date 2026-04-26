@@ -4,6 +4,33 @@ import axios from "axios";
 import { resetPassword } from "../features/auth/api";
 import { useI18n } from "../i18n/useI18n";
 
+function getErrorDetail(error: unknown): string | null {
+  if (!axios.isAxiosError(error)) {
+    return null;
+  }
+
+  const detail = error.response?.data?.detail;
+  if (typeof detail === "string") {
+    return detail;
+  }
+
+  if (Array.isArray(detail)) {
+    const messages = detail
+      .map((item) => {
+        if (!item || typeof item !== "object") {
+          return null;
+        }
+
+        return "msg" in item && typeof item.msg === "string" ? item.msg : null;
+      })
+      .filter((message): message is string => Boolean(message));
+
+    return messages.length > 0 ? messages.join(" ") : null;
+  }
+
+  return null;
+}
+
 export function ResetPasswordPage() {
   const { t } = useI18n();
   const token = useMemo(() => {
@@ -40,10 +67,8 @@ export function ResetPasswordPage() {
         window.location.href = "/";
       }, 1200);
     } catch (error) {
-      if (axios.isAxiosError(error)) {
-        const detail = typeof error.response?.data?.detail === "string"
-          ? error.response.data.detail
-          : null;
+      const detail = getErrorDetail(error);
+      if (detail || axios.isAxiosError(error)) {
         setError(detail ?? t("auth.resetPasswordError"));
       } else {
         setError(t("auth.resetPasswordError"));
@@ -66,6 +91,9 @@ export function ResetPasswordPage() {
               type="password"
               value={password}
               onChange={(event) => setPassword(event.target.value)}
+              autoComplete="new-password"
+              minLength={8}
+              maxLength={128}
               required
             />
           </label>
@@ -76,6 +104,9 @@ export function ResetPasswordPage() {
               type="password"
               value={confirmPassword}
               onChange={(event) => setConfirmPassword(event.target.value)}
+              autoComplete="new-password"
+              minLength={8}
+              maxLength={128}
               required
             />
           </label>
