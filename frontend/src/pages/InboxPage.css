@@ -215,6 +215,7 @@
 
 .inbox-main {
   min-width: 0;
+  min-height: 0;
   display: grid;
   place-items: stretch;
   padding: 1rem;
@@ -244,6 +245,7 @@
 }
 
 .inbox-header {
+  flex: 0 0 auto;
   padding: 1rem 1.1rem;
   border-bottom: 1px solid rgba(21, 21, 21, 0.07);
   display: flex;
@@ -324,6 +326,7 @@
 
 .inbox-messages {
   flex: 1;
+  min-height: 0;
   padding: 1.1rem;
   overflow-y: auto;
   display: flex;
@@ -406,6 +409,7 @@
 }
 
 .inbox-form {
+  flex: 0 0 auto;
   display: flex;
   padding: 1rem;
   border-top: 1px solid rgba(21, 21, 21, 0.08);
