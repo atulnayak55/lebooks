@@ -11,6 +11,9 @@ class MessageBase(BaseModel):
 class MessageCreate(MessageBase):
     room_id: int
 
+class MessageTextCreate(BaseModel):
+    content: str
+
 class MessageResponse(MessageBase):
     id: int
     room_id: int

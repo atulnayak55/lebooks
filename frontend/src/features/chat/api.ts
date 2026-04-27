@@ -73,6 +73,21 @@ export async function markChatRoomRead(roomId: number, token: string): Promise<R
   return response.data;
 }
 
+export async function createChatMessage(
+  roomId: number,
+  content: string,
+  token: string,
+): Promise<MessageResponse> {
+  const response = await api.post<MessageResponse>(
+    `/chat/rooms/${roomId}/messages`,
+    { content },
+    {
+      headers: { Authorization: `Bearer ${token}` },
+    },
+  );
+  return response.data;
+}
+
 export async function uploadChatImage(
   roomId: number,
   receiverId: number,

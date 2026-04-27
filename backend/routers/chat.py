@@ -259,6 +259,42 @@ async def upload_chat_image(
 
     return db_message
 
+
+@router.post("/rooms/{room_id}/messages", response_model=chat_schemas.MessageResponse)
+async def create_chat_message(
+    room_id: int,
+    message: chat_schemas.MessageTextCreate,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
+):
+    """Save a text chat message and broadcast it to connected participants."""
+    room = db.query(models.ChatRoom).filter(models.ChatRoom.id == room_id).first()
+    if not room:
+        raise HTTPException(status_code=404, detail="Room not found")
+
+    if current_user.id not in [room.buyer_id, room.seller_id]:
+        raise HTTPException(status_code=403, detail="Not authorized for this room")
+
+    normalized_content = message.content.strip()
+    if not normalized_content:
+        raise HTTPException(status_code=400, detail="Message content cannot be empty")
+
+    receiver_id = room.seller_id if current_user.id == room.buyer_id else room.buyer_id
+    db_message = models.Message(
+        content=normalized_content,
+        room_id=room_id,
+        sender_id=current_user.id,
+    )
+    db.add(db_message)
+    db.commit()
+    db.refresh(db_message)
+
+    full_message = message_to_payload(db_message)
+    await manager.send_personal_message(full_message, current_user.id)
+    await manager.send_personal_message(full_message, receiver_id)
+
+    return db_message
+
 # --- UPDATED WEBSOCKET ENDPOINT ---
 @router.websocket("/ws")
 @router.websocket("/ws/{_legacy_user_id}")

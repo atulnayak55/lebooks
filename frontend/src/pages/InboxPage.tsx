@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import type { AuthSession } from "../features/auth/session";
 import {
+  createChatMessage,
   fetchChatRoom,
   fetchChatHistory,
   fetchChatRooms,
@@ -67,7 +68,6 @@ export function InboxPage({ session, chatConnection }: InboxPageProps) {
   const {
     messages: liveMessages,
     readReceipts,
-    sendMessage,
     addMessage,
     addReadReceipt,
   } = chatConnection;
@@ -397,19 +397,21 @@ export function InboxPage({ session, chatConnection }: InboxPageProps) {
     return roomSummaries.reduce((count, summary) => count + summary.unreadCount, 0);
   }, [roomSummaries]);
 
-  function handleSendText(event: React.FormEvent) {
+  async function handleSendText(event: React.FormEvent) {
     event.preventDefault();
-    if (!draft.trim() || !activeRoom || !userId) {
+    const messageText = draft.trim();
+    if (!messageText || !activeRoom || !token) {
       return;
     }
 
-    const receiverId = userId === activeRoom.seller_id ? activeRoom.buyer_id : activeRoom.seller_id;
-    sendMessage({
-      content: draft,
-      room_id: activeRoom.id,
-      receiver_id: receiverId,
-    });
     setDraft("");
+    try {
+      const newMessage = await createChatMessage(activeRoom.id, messageText, token);
+      addMessage(newMessage);
+    } catch (error) {
+      console.error("Failed to send message", error);
+      setDraft(messageText);
+    }
   }
 
   async function handleImageUpload(event: React.ChangeEvent<HTMLInputElement>) {
