@@ -65,6 +65,7 @@ export function InboxPage({ session, chatConnection }: InboxPageProps) {
 
   const markingRoomIdsRef = useRef<Set<number>>(new Set());
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
+  const draftInputRef = useRef<HTMLInputElement | null>(null);
 
   const {
     messages: liveMessages,
@@ -414,6 +415,10 @@ export function InboxPage({ session, chatConnection }: InboxPageProps) {
     } catch (error) {
       console.error("Failed to send message", error);
       setDraft(messageText);
+    } finally {
+      window.requestAnimationFrame(() => {
+        draftInputRef.current?.focus();
+      });
     }
   }
 
@@ -663,6 +668,7 @@ export function InboxPage({ session, chatConnection }: InboxPageProps) {
                 />
               </label>
               <input
+                ref={draftInputRef}
                 value={draft}
                 onChange={(event) => setDraft(event.target.value)}
                 placeholder={t("chat.placeholder")}
