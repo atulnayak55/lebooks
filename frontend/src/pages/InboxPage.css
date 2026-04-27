@@ -353,6 +353,7 @@
 
 .message-bubble {
   min-width: 5rem;
+  max-width: 100%;
   padding: 0.72rem 0.9rem 0.48rem;
   border-radius: 18px;
   overflow-wrap: anywhere;
@@ -361,12 +362,20 @@
   box-shadow: 0 12px 24px rgba(21, 21, 21, 0.08);
 }
 
+.message-bubble.with-image {
+  width: fit-content;
+  padding: 0.45rem;
+}
+
 .message-image {
-  max-width: min(220px, 100%);
+  width: min(320px, 48vw);
+  max-width: 100%;
+  max-height: 420px;
+  object-fit: contain;
   border-radius: 14px;
   display: block;
-  margin-bottom: 0.5rem;
   cursor: zoom-in;
+  background: rgba(255, 255, 255, 0.72);
 }
 
 .message-bubble.mine {

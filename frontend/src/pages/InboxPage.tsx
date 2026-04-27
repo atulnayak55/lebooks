@@ -615,7 +615,11 @@ export function InboxPage({ session, chatConnection }: InboxPageProps) {
                     key={message.id ?? `local-${index}`}
                     className={`message-row ${isMine ? "mine" : "theirs"}`}
                   >
-                    <div className={`message-bubble ${isMine ? "mine" : "theirs"}`}>
+                    <div
+                      className={`message-bubble ${isMine ? "mine" : "theirs"} ${
+                        message.image_url ? "with-image" : ""
+                      }`}
+                    >
                       {message.image_url ? (
                         <img
                           src={`${backendBaseUrl}${message.image_url}`}
