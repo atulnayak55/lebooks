@@ -424,6 +424,11 @@ export function InboxPage({ session, chatConnection }: InboxPageProps) {
     try {
       const newMessage = await uploadChatImage(activeRoom.id, receiverId, file, token);
       addMessage(newMessage);
+      setHistoryByRoom((currentHistory) => ({
+        ...currentHistory,
+        [activeRoom.id]: mergeChatMessages(currentHistory[activeRoom.id] ?? [], [newMessage])
+          .filter((message): message is MessageResponse => message.id !== undefined),
+      }));
     } catch (error) {
       console.error("Failed to upload image", error);
       alert(t("inbox.uploadFailed"));

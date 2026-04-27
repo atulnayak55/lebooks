@@ -101,7 +101,6 @@ export async function uploadChatImage(
   const response = await api.post<MessageResponse>(`/chat/rooms/${roomId}/messages/image`, formData, {
     headers: {
       Authorization: `Bearer ${token}`,
-      "Content-Type": "multipart/form-data",
     },
   });
   return response.data;

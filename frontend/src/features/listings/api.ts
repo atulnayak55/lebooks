@@ -42,7 +42,6 @@ export async function uploadListingImage(
   await api.post(`/listings/${listingId}/images`, formData, {
     headers: {
       Authorization: `Bearer ${token}`,
-      "Content-Type": "multipart/form-data",
     },
   });
 }
