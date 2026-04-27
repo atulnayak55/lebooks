@@ -496,7 +496,13 @@
 
   .inbox-main.has-active-room {
     min-height: 0;
+    overflow: hidden;
     padding: 0.8rem;
+  }
+
+  .chat-panel {
+    height: 100%;
+    min-height: 0;
   }
 
   .chat-panel-back-button {
@@ -511,6 +517,7 @@
 
   .inbox-header {
     align-items: flex-start;
+    flex: 0 0 auto;
     flex-direction: column;
   }
 
@@ -532,7 +539,13 @@
   }
 
   .inbox-messages {
-    min-height: 18rem;
+    flex: 1 1 auto;
+    min-height: 0;
+    overscroll-behavior: contain;
+  }
+
+  .inbox-form {
+    flex: 0 0 auto;
   }
 
   .message-bubble {
@@ -560,12 +573,14 @@
   }
 
   .inbox-form {
-    display: grid;
-    grid-template-columns: auto minmax(0, 1fr);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
   }
 
   .inbox-form button[type="submit"] {
-    grid-column: 1 / -1;
+    flex: 0 0 auto;
+    padding-inline: 0.85rem;
   }
 
   .message-row {
