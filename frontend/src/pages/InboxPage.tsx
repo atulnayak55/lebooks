@@ -64,6 +64,7 @@ export function InboxPage({ session, chatConnection }: InboxPageProps) {
   const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(null);
 
   const markingRoomIdsRef = useRef<Set<number>>(new Set());
+  const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
   const {
     messages: liveMessages,
@@ -314,6 +315,10 @@ export function InboxPage({ session, chatConnection }: InboxPageProps) {
       liveMessages.filter((message) => message.room_id === activeRoomId),
     );
   }, [activeRoomId, historyByRoom, liveMessages]);
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ block: "end" });
+  }, [activeRoomId, currentMessages.length]);
 
   useEffect(() => {
     if (!activeRoomId || !token || historyByRoom[activeRoomId]) {
@@ -639,6 +644,7 @@ export function InboxPage({ session, chatConnection }: InboxPageProps) {
                   </div>
                 );
               })}
+              <div ref={messagesEndRef} aria-hidden="true" />
             </div>
 
             <form className="inbox-form" onSubmit={handleSendText}>
