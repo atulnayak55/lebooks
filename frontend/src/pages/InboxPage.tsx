@@ -64,7 +64,7 @@ export function InboxPage({ session, chatConnection }: InboxPageProps) {
   const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(null);
 
   const markingRoomIdsRef = useRef<Set<number>>(new Set());
-  const messagesEndRef = useRef<HTMLDivElement | null>(null);
+  const messagesPaneRef = useRef<HTMLDivElement | null>(null);
   const draftInputRef = useRef<HTMLInputElement | null>(null);
 
   const {
@@ -317,9 +317,18 @@ export function InboxPage({ session, chatConnection }: InboxPageProps) {
     );
   }, [activeRoomId, historyByRoom, liveMessages]);
 
+  const scrollMessagesToBottom = useCallback(() => {
+    const messagesPane = messagesPaneRef.current;
+    if (!messagesPane) {
+      return;
+    }
+
+    messagesPane.scrollTop = messagesPane.scrollHeight;
+  }, []);
+
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ block: "end" });
-  }, [activeRoomId, currentMessages.length]);
+    window.requestAnimationFrame(scrollMessagesToBottom);
+  }, [activeRoomId, currentMessages.length, scrollMessagesToBottom]);
 
   useEffect(() => {
     if (!activeRoomId || !token || historyByRoom[activeRoomId]) {
@@ -615,7 +624,7 @@ export function InboxPage({ session, chatConnection }: InboxPageProps) {
               </div>
             </div>
 
-            <div className="inbox-messages">
+            <div className="inbox-messages" ref={messagesPaneRef}>
               {loadingConversation && currentMessages.length === 0 ? (
                 <p className="inbox-empty">{t("inbox.loadingConversation")}</p>
               ) : null}
@@ -644,6 +653,7 @@ export function InboxPage({ session, chatConnection }: InboxPageProps) {
                           src={`${backendBaseUrl}${message.image_url}`}
                           alt={t("inbox.imageAlt")}
                           className="message-image"
+                          onLoad={scrollMessagesToBottom}
                           onClick={() => setPreviewImageUrl(`${backendBaseUrl}${message.image_url}`)}
                         />
                       ) : null}
@@ -658,7 +668,6 @@ export function InboxPage({ session, chatConnection }: InboxPageProps) {
                   </div>
                 );
               })}
-              <div ref={messagesEndRef} aria-hidden="true" />
             </div>
 
             <form className="inbox-form" onSubmit={handleSendText}>
