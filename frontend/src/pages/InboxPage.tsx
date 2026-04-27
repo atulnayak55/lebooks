@@ -605,6 +605,14 @@ export function InboxPage({ session, chatConnection }: InboxPageProps) {
                 </div>
               </div>
               <div className="chat-panel-actions">
+                <button
+                  className="chat-panel-mobile-close-button"
+                  type="button"
+                  onClick={() => setSelectedRoomId(null)}
+                  aria-label={t("chat.close")}
+                >
+                  ×
+                </button>
                 {userId === activeRoom.seller_id ? (
                   <button
                     className="delete-listing-chat-button"

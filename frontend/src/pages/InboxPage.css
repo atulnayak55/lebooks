@@ -324,6 +324,10 @@
   font-weight: 800;
 }
 
+.chat-panel-mobile-close-button {
+  display: none;
+}
+
 .inbox-messages {
   flex: 1;
   min-height: 0;
@@ -508,14 +512,22 @@
   }
 
   .inbox-main.has-active-room {
+    position: fixed;
+    inset: 0;
+    z-index: 190;
     min-height: 0;
     overflow: hidden;
-    padding: 0.8rem;
+    padding: 0;
+    background: rgba(246, 249, 242, 0.98);
   }
 
   .chat-panel {
-    height: 100%;
+    height: 100dvh;
     min-height: 0;
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+    background: rgba(255, 255, 255, 0.96);
   }
 
   .chat-panel-back-button {
@@ -529,15 +541,37 @@
   }
 
   .inbox-header {
-    align-items: flex-start;
+    align-items: center;
     flex: 0 0 auto;
-    flex-direction: column;
+    flex-direction: row;
+    gap: 0.55rem;
+    padding: calc(0.55rem + env(safe-area-inset-top)) 0.75rem 0.55rem;
   }
 
   .chat-panel-actions {
-    width: 100%;
-    justify-content: flex-start;
+    width: auto;
+    margin-left: auto;
+    justify-content: flex-end;
     flex-wrap: wrap;
+  }
+
+  .chat-panel-mobile-close-button {
+    width: 2.35rem;
+    height: 2.35rem;
+    border: 1px solid rgba(21, 21, 21, 0.1);
+    border-radius: 999px;
+    display: grid;
+    place-items: center;
+    background: rgba(21, 21, 21, 0.05);
+    color: var(--ink);
+    cursor: pointer;
+    font-size: 1.25rem;
+    font-weight: 900;
+    line-height: 1;
+  }
+
+  .delete-listing-chat-button {
+    display: none;
   }
 
   .room-preview-row,
@@ -554,11 +588,48 @@
   .inbox-messages {
     flex: 1 1 auto;
     min-height: 0;
+    padding: 0.65rem 0.75rem 0.35rem;
     overscroll-behavior: contain;
   }
 
   .inbox-form {
     flex: 0 0 auto;
+    padding: 0.45rem 0.75rem calc(0.45rem + env(safe-area-inset-bottom));
+  }
+
+  .inbox-conversation-title {
+    flex: 1 1 auto;
+    gap: 0.55rem;
+  }
+
+  .conversation-avatar {
+    width: 2.25rem;
+    height: 2.25rem;
+  }
+
+  .conversation-copy {
+    gap: 0.12rem;
+  }
+
+  .conversation-title-row {
+    flex-direction: row;
+    align-items: center;
+    gap: 0.45rem;
+  }
+
+  .inbox-header h3 {
+    font-size: 0.98rem;
+  }
+
+  .inbox-header span {
+    font-size: 0.78rem;
+  }
+
+  .conversation-copy > span:last-child {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   .message-bubble {
