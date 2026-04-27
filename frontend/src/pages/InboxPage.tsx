@@ -472,7 +472,7 @@ export function InboxPage({ session, chatConnection }: InboxPageProps) {
 
   return (
     <div className="inbox-container">
-      <aside className="inbox-sidebar">
+      <aside className={`inbox-sidebar ${activeRoom ? "has-active-room" : ""}`}>
         <div className="inbox-sidebar-header">
           <div className="inbox-sidebar-copy">
             <h2 className="inbox-title">{t("inbox.messages")}</h2>
@@ -538,12 +538,19 @@ export function InboxPage({ session, chatConnection }: InboxPageProps) {
         </div>
       </aside>
 
-      <section className="inbox-main">
+      <section className={`inbox-main ${activeRoom ? "has-active-room" : ""}`}>
         {!activeRoom ? (
           <div className="inbox-empty">{t("inbox.selectConversation")}</div>
         ) : (
           <div className="chat-panel">
             <div className="inbox-header">
+              <button
+                className="chat-panel-back-button"
+                type="button"
+                onClick={() => setSelectedRoomId(null)}
+              >
+                {t("inbox.backToRooms")}
+              </button>
               <div className="inbox-conversation-title">
                 <span className="conversation-avatar" aria-hidden="true">
                   {activeRoomOtherPerson?.name.slice(0, 1).toUpperCase()}

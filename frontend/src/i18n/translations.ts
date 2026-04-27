@@ -164,6 +164,7 @@ export const translations: Record<Language, Record<string, string>> = {
 
     "inbox.signInRequired": "Please sign in to view your messages.",
     "inbox.messages": "Messages",
+    "inbox.backToRooms": "Back to chats",
     "inbox.subtitle": "Newest conversations stay at the top.",
     "inbox.loading": "Loading conversations...",
     "inbox.loadingConversation": "Loading messages...",
@@ -354,6 +355,7 @@ export const translations: Record<Language, Record<string, string>> = {
 
     "inbox.signInRequired": "Accedi per vedere i tuoi messaggi.",
     "inbox.messages": "Messaggi",
+    "inbox.backToRooms": "Torna alle chat",
     "inbox.subtitle": "Le conversazioni piu recenti restano in alto.",
     "inbox.loading": "Caricamento conversazioni...",
     "inbox.loadingConversation": "Caricamento messaggi...",
