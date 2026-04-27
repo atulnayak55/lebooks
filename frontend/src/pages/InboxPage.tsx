@@ -292,12 +292,10 @@ export function InboxPage({ session, chatConnection }: InboxPageProps) {
       });
   }, [historyByRoom, liveMessages, rooms, t, userId]);
 
-  const activeRoomId = roomSummaries.length === 0
-    ? null
-    : selectedRoomId !== null
-      && roomSummaries.some((summary) => summary.room.id === selectedRoomId)
-      ? selectedRoomId
-      : roomSummaries[0].room.id;
+  const activeRoomId = selectedRoomId !== null
+    && roomSummaries.some((summary) => summary.room.id === selectedRoomId)
+    ? selectedRoomId
+    : null;
 
   const activeRoomSummary = useMemo(() => {
     return roomSummaries.find((summary) => summary.room.id === activeRoomId) ?? null;
@@ -498,51 +496,53 @@ export function InboxPage({ session, chatConnection }: InboxPageProps) {
           <p className="inbox-empty">{t("inbox.noChats")}</p>
         ) : null}
 
-        {roomSummaries.map((summary) => (
-          <button
-            key={summary.room.id}
-            className={`inbox-room-btn ${activeRoomId === summary.room.id ? "active" : ""}`}
-            onClick={() => setSelectedRoomId(summary.room.id)}
-          >
-            <span className="room-avatar" aria-hidden="true">
-              {summary.otherPerson.name.slice(0, 1).toUpperCase()}
-            </span>
-            <span className="room-copy">
-              <span className="room-topline">
-                <span className="room-listing">{summary.room.listing.title}</span>
-                {summary.latestMessage ? (
-                  <span className="room-time">
-                    {formatConversationTime(summary.latestMessage.timestamp, locale)}
-                  </span>
-                ) : null}
+        <div className="inbox-room-list">
+          {roomSummaries.map((summary) => (
+            <button
+              key={summary.room.id}
+              className={`inbox-room-btn ${activeRoomId === summary.room.id ? "active" : ""}`}
+              onClick={() => setSelectedRoomId(summary.room.id)}
+            >
+              <span className="room-avatar" aria-hidden="true">
+                {summary.otherPerson.name.slice(0, 1).toUpperCase()}
               </span>
-              <span className="room-person">
-                {summary.isSeller ? t("inbox.buyer") : t("inbox.seller")}: {summary.otherPerson.name}
-              </span>
-              <span className="room-preview-row">
-                <span className={`room-preview ${summary.unreadCount > 0 ? "unread" : ""}`}>
-                  {summary.preview}
+              <span className="room-copy">
+                <span className="room-topline">
+                  <span className="room-listing">{summary.room.listing.title}</span>
+                  {summary.latestMessage ? (
+                    <span className="room-time">
+                      {formatConversationTime(summary.latestMessage.timestamp, locale)}
+                    </span>
+                  ) : null}
                 </span>
-                {summary.unreadCount > 0 ? (
-                  <span
-                    className="room-unread-badge"
-                    aria-label={t("nav.unreadMessages", { count: summary.unreadCount })}
-                  >
-                    {summary.unreadCount > 99 ? "99+" : summary.unreadCount}
+                <span className="room-person">
+                  {summary.isSeller ? t("inbox.buyer") : t("inbox.seller")}: {summary.otherPerson.name}
+                </span>
+                <span className="room-preview-row">
+                  <span className={`room-preview ${summary.unreadCount > 0 ? "unread" : ""}`}>
+                    {summary.preview}
                   </span>
-                ) : null}
+                  {summary.unreadCount > 0 ? (
+                    <span
+                      className="room-unread-badge"
+                      aria-label={t("nav.unreadMessages", { count: summary.unreadCount })}
+                    >
+                      {summary.unreadCount > 99 ? "99+" : summary.unreadCount}
+                    </span>
+                  ) : null}
+                </span>
+                <span className="room-price-pill">{formatEuro(summary.room.listing.price, locale)}</span>
               </span>
-              <span className="room-price-pill">{formatEuro(summary.room.listing.price, locale)}</span>
-            </span>
-          </button>
-        ))}
+            </button>
+          ))}
+        </div>
       </aside>
 
       <section className="inbox-main">
         {!activeRoom ? (
           <div className="inbox-empty">{t("inbox.selectConversation")}</div>
         ) : (
-          <>
+          <div className="chat-panel">
             <div className="inbox-header">
               <div className="inbox-conversation-title">
                 <span className="conversation-avatar" aria-hidden="true">
@@ -564,15 +564,24 @@ export function InboxPage({ session, chatConnection }: InboxPageProps) {
                   </span>
                 </div>
               </div>
-              {userId === activeRoom.seller_id ? (
+              <div className="chat-panel-actions">
+                {userId === activeRoom.seller_id ? (
+                  <button
+                    className="delete-listing-chat-button"
+                    type="button"
+                    onClick={handleDeleteListingFromChat}
+                  >
+                    {t("inbox.deleteListing")}
+                  </button>
+                ) : null}
                 <button
-                  className="delete-listing-chat-button"
+                  className="chat-panel-close-button"
                   type="button"
-                  onClick={handleDeleteListingFromChat}
+                  onClick={() => setSelectedRoomId(null)}
                 >
-                  {t("inbox.deleteListing")}
+                  {t("chat.close")}
                 </button>
-              ) : null}
+              </div>
             </div>
 
             <div className="inbox-messages">
@@ -641,7 +650,7 @@ export function InboxPage({ session, chatConnection }: InboxPageProps) {
                 {t("chat.send")}
               </button>
             </form>
-          </>
+          </div>
         )}
       </section>
 

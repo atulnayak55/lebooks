@@ -3,12 +3,12 @@
   grid-template-columns: minmax(270px, 340px) minmax(0, 1fr);
   height: min(70dvh, 680px);
   min-height: 480px;
-  background: rgba(255, 255, 255, 0.68);
-  border: 1px solid rgba(255, 255, 255, 0.7);
-  border-radius: 26px;
+  background: rgba(239, 246, 232, 0.64);
+  border: 1px solid rgba(100, 180, 79, 0.16);
+  border-radius: 24px;
   overflow: hidden;
   min-width: 0;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
 }
 
 .inbox-sidebar {
@@ -18,7 +18,7 @@
     linear-gradient(180deg, rgba(236, 245, 230, 0.95), rgba(246, 249, 242, 0.9));
   display: flex;
   flex-direction: column;
-  overflow-y: auto;
+  overflow: hidden;
 }
 
 .inbox-sidebar-header {
@@ -85,6 +85,13 @@
   font-size: 0.84rem;
 }
 
+.inbox-room-list {
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-bottom: 0.4rem;
+}
+
 .inbox-room-btn {
   width: 100%;
   padding: 0.95rem 1rem;
@@ -106,8 +113,8 @@
 
 .inbox-room-btn.active {
   background:
-    linear-gradient(135deg, rgba(100, 180, 79, 0.18), rgba(255, 255, 255, 0.72));
-  box-shadow: inset 5px 0 0 var(--green-deep);
+    linear-gradient(135deg, rgba(100, 180, 79, 0.22), rgba(255, 255, 255, 0.84));
+  box-shadow: inset 5px 0 0 var(--green-deep), 0 10px 24px rgba(65, 143, 51, 0.12);
 }
 
 .room-avatar,
@@ -208,8 +215,9 @@
 
 .inbox-main {
   min-width: 0;
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  place-items: stretch;
+  padding: 1rem;
   background:
     linear-gradient(rgba(246, 249, 242, 0.92), rgba(246, 249, 242, 0.92)),
     radial-gradient(circle at top right, rgba(100, 180, 79, 0.13), transparent 32%);
@@ -220,6 +228,19 @@
   text-align: center;
   color: var(--muted);
   margin: auto;
+}
+
+.chat-panel {
+  min-width: 0;
+  min-height: 0;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.86);
+  border: 1px solid rgba(21, 21, 21, 0.08);
+  border-radius: 18px;
+  box-shadow: 0 18px 44px rgba(21, 21, 21, 0.08);
 }
 
 .inbox-header {
@@ -266,6 +287,24 @@
   border: 1px solid rgba(180, 35, 24, 0.14);
   background: rgba(180, 35, 24, 0.08);
   color: #b42318;
+  padding: 0.65rem 1rem;
+  border-radius: 999px;
+  cursor: pointer;
+  font-weight: 800;
+}
+
+.chat-panel-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.55rem;
+  flex: 0 0 auto;
+}
+
+.chat-panel-close-button {
+  border: 1px solid rgba(21, 21, 21, 0.1);
+  background: rgba(21, 21, 21, 0.05);
+  color: var(--ink);
   padding: 0.65rem 1rem;
   border-radius: 999px;
   cursor: pointer;
@@ -439,11 +478,18 @@
 
   .inbox-main {
     min-height: 58dvh;
+    padding: 0.8rem;
   }
 
   .inbox-header {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .chat-panel-actions {
+    width: 100%;
+    justify-content: flex-start;
+    flex-wrap: wrap;
   }
 
   .room-preview-row,
@@ -452,7 +498,8 @@
     flex-direction: column;
   }
 
-  .delete-listing-chat-button {
+  .delete-listing-chat-button,
+  .chat-panel-close-button {
     width: 100%;
   }
 
