@@ -401,8 +401,7 @@ export function InboxPage({ session, chatConnection }: InboxPageProps) {
     return roomSummaries.reduce((count, summary) => count + summary.unreadCount, 0);
   }, [roomSummaries]);
 
-  async function handleSendText(event: React.FormEvent) {
-    event.preventDefault();
+  async function sendCurrentDraft() {
     const messageText = draft.trim();
     if (!messageText || !activeRoom || !token) {
       return;
@@ -420,6 +419,16 @@ export function InboxPage({ session, chatConnection }: InboxPageProps) {
         draftInputRef.current?.focus();
       });
     }
+  }
+
+  function handleSendText(event: React.FormEvent) {
+    event.preventDefault();
+    void sendCurrentDraft();
+  }
+
+  function handleSendButtonPointerDown(event: React.PointerEvent<HTMLButtonElement>) {
+    event.preventDefault();
+    void sendCurrentDraft();
   }
 
   async function handleImageUpload(event: React.ChangeEvent<HTMLInputElement>) {
@@ -674,7 +683,11 @@ export function InboxPage({ session, chatConnection }: InboxPageProps) {
                 placeholder={t("chat.placeholder")}
                 disabled={uploading}
               />
-              <button type="submit" disabled={!draft.trim() || uploading}>
+              <button
+                type="submit"
+                disabled={!draft.trim() || uploading}
+                onPointerDown={handleSendButtonPointerDown}
+              >
                 {t("chat.send")}
               </button>
             </form>
