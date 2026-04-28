@@ -19,6 +19,7 @@ class Settings(BaseSettings):
     )
     email_dev_fallback: bool | None = Field(default=None, alias="email_dev_fallback")
     email_from: str = "onboarding@lebooks.it"
+    email_logo_url: str | None = Field(default=None, alias="email_logo_url")
     frontend_url: str = "http://localhost:5173"
     backend_base_url: str = "http://localhost:8000"
     verify_email_token_expire_hours: int = 24
