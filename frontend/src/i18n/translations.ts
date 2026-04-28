@@ -161,6 +161,7 @@ export const translations: Record<Language, Record<string, string>> = {
     "chat.seen": "Seen {time}",
     "chat.placeholder": "Type a message...",
     "chat.send": "Send",
+    "chat.sendError": "Could not send the message. Please try again.",
 
     "inbox.signInRequired": "Please sign in to view your messages.",
     "inbox.messages": "Messages",
@@ -352,6 +353,7 @@ export const translations: Record<Language, Record<string, string>> = {
     "chat.seen": "Letto {time}",
     "chat.placeholder": "Scrivi un messaggio...",
     "chat.send": "Invia",
+    "chat.sendError": "Impossibile inviare il messaggio. Riprova.",
 
     "inbox.signInRequired": "Accedi per vedere i tuoi messaggi.",
     "inbox.messages": "Messaggi",

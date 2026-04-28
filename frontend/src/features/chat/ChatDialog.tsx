@@ -1,6 +1,7 @@
 import { useMemo, useState, useEffect } from "react";
 import { useI18n } from "../../i18n/useI18n";
 import {
+  createChatMessage,
   createOrGetChatRoom,
   fetchChatHistory,
   markChatRoomRead,
@@ -36,7 +37,7 @@ export function ChatDialog({
   const [draft, setDraft] = useState("");
   const [error, setError] = useState<string | null>(null);
 
-  const { messages, readReceipts, sendMessage, addReadReceipt } = chatConnection;
+  const { messages, readReceipts, addMessage, addReadReceipt } = chatConnection;
 
   // When the dialog opens, ping the backend to create/fetch the room
   useEffect(() => {
@@ -124,20 +125,21 @@ export function ChatDialog({
 
   const otherPersonName = listing.seller.name;
 
-  function handleSend(e: React.FormEvent) {
+  async function handleSend(e: React.FormEvent) {
     e.preventDefault();
     if (!draft.trim() || !roomId || !roomInfo) return;
 
-    const receiverId =
-      currentUserId === roomInfo.seller_id ? roomInfo.buyer_id : roomInfo.seller_id;
+    const messageText = draft.trim();
+    setDraft("");
+    setError(null);
 
-    sendMessage({
-      content: draft,
-      room_id: roomId,
-      receiver_id: receiverId
-    });
-    
-    setDraft(""); // Clear input
+    try {
+      const newMessage = await createChatMessage(roomId, messageText, token);
+      addMessage(newMessage);
+    } catch {
+      setDraft(messageText);
+      setError(t("chat.sendError"));
+    }
   }
 
   function handleClose() {

@@ -3,7 +3,7 @@ from html import escape
 from urllib.parse import urlencode
 from urllib.parse import urlparse
 
-import resend
+from azure.communication.email import EmailClient
 
 from core.config import settings
 
@@ -32,11 +32,11 @@ def _allow_dev_fallback() -> bool:
 
 
 def email_delivery_enabled() -> bool:
-    return bool(settings.resend_api_key) or _allow_dev_fallback()
+    return bool(settings.azure_communication_email_connection_string) or _allow_dev_fallback()
 
 
 def _send_email(*, to: str, subject: str, html: str) -> None:
-    if not settings.resend_api_key:
+    if not settings.azure_communication_email_connection_string:
         if not _allow_dev_fallback():
             raise EmailDeliveryError("Email delivery is not configured")
 
@@ -46,15 +46,22 @@ def _send_email(*, to: str, subject: str, html: str) -> None:
         return
 
     try:
-        resend.api_key = settings.resend_api_key
-        resend.Emails.send(
+        email_client = EmailClient.from_connection_string(
+            settings.azure_communication_email_connection_string,
+        )
+        poller = email_client.begin_send(
             {
-                "from": _get_configured_sender(),
-                "to": [to],
-                "subject": subject,
-                "html": html,
+                "senderAddress": _get_configured_sender(),
+                "recipients": {
+                    "to": [{"address": to}],
+                },
+                "content": {
+                    "subject": subject,
+                    "html": html,
+                },
             }
         )
+        poller.result()
     except Exception as exc:
         if _allow_dev_fallback():
             print(f"[email-dev-fallback] Delivery failed: {exc}")
@@ -105,5 +112,37 @@ def send_password_reset_email(*, recipient_email: str, recipient_name: str, toke
     _send_email(
         to=recipient_email,
         subject="Reset your lebooks password",
+        html=html,
+    )
+
+
+def send_offline_chat_email(
+    *,
+    recipient_email: str,
+    recipient_name: str,
+    sender_name: str,
+    listing_title: str,
+    message_preview: str,
+) -> None:
+    safe_recipient_name = escape(recipient_name)
+    safe_sender_name = escape(sender_name)
+    safe_listing_title = escape(listing_title)
+    safe_message_preview = escape(message_preview)
+    inbox_link = settings.frontend_url.rstrip("/")
+
+    html = f"""
+    <div>
+      <h2>You have a new lebooks message</h2>
+      <p>Hi {safe_recipient_name},</p>
+      <p>{safe_sender_name} sent you a message about <strong>{safe_listing_title}</strong>.</p>
+      <blockquote>{safe_message_preview}</blockquote>
+      <p><a href="{inbox_link}">Open lebooks to reply</a></p>
+      <p>If you are already chatting in lebooks, you can ignore this email.</p>
+    </div>
+    """
+
+    _send_email(
+        to=recipient_email,
+        subject=f"New message about {listing_title}",
         html=html,
     )

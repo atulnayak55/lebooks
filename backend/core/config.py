@@ -13,7 +13,10 @@ class Settings(BaseSettings):
     jwt_secret_key: str = "super-secret-bobooks-key-change-me-later"
     jwt_algorithm: str = "HS256"
     access_token_expire_days: int = 7
-    resend_api_key: str | None = Field(default=None, alias="resend_api_key")
+    azure_communication_email_connection_string: str | None = Field(
+        default=None,
+        alias="azure_communication_email_connection_string",
+    )
     email_dev_fallback: bool | None = Field(default=None, alias="email_dev_fallback")
     email_from: str = "onboarding@lebooks.it"
     frontend_url: str = "http://localhost:5173"
