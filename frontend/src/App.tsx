@@ -24,15 +24,15 @@ function ContactPage() {
       <div className="info-page-body">
         <p>
           {t("contact.body1")}{" "}
-          <a href="mailto:atulak1357@gmail.com">atulak1357@gmail.com</a>.
+          <a href="mailto:info@lebooks.it">info@lebooks.it</a>.
         </p>
         <p>{t("contact.body2")}</p>
         <address>
           {t("contact.addressLabel")}
           <br />
-          Via Malta, 6
+          Via Fulvio Testi, 16
           <br />
-          35134 Padova PD
+          35125 Padova PD
           <br />
           Italy
         </address>
@@ -43,6 +43,20 @@ function ContactPage() {
 
 function PrivacyPage() {
   const { t } = useI18n();
+  const sections = [
+    "controller",
+    "data",
+    "purposes",
+    "legalBases",
+    "recipients",
+    "retention",
+    "rights",
+    "security",
+    "cookies",
+    "automated",
+    "complaints",
+    "changes",
+  ];
 
   return (
     <section className="info-page" aria-labelledby="privacy-title">
@@ -51,15 +65,13 @@ function PrivacyPage() {
         <h1 id="privacy-title">{t("privacy.title")}</h1>
       </div>
       <div className="info-page-body">
-        <p>{t("privacy.body1")}</p>
-        <p>{t("privacy.body2")}</p>
-        <p>{t("privacy.body3")}</p>
-        <p>
-          {t("privacy.body4Before")}{" "}
-          <a href="mailto:atulak1357@gmail.com">atulak1357@gmail.com</a>.{" "}
-          {t("privacy.body4After")}
-        </p>
-        <p>{t("privacy.body5")}</p>
+        <p>{t("privacy.intro")}</p>
+        {sections.map((section) => (
+          <section className="privacy-section" key={section}>
+            <h2>{t(`privacy.${section}.title`)}</h2>
+            <p>{t(`privacy.${section}.body`)}</p>
+          </section>
+        ))}
       </div>
     </section>
   );

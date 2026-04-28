@@ -9,7 +9,7 @@ PyJWT
 python-multipart
 email-validator
 pydantic-settings
-resend
+azure-communication-email
 requests
 beautifulsoup4
 alembic

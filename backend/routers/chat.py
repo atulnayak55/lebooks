@@ -1,7 +1,9 @@
 # routers/chat.py
+import asyncio
+import logging
 from pathlib import Path
 
-from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Depends, HTTPException, UploadFile, File, Form, status
+from fastapi import APIRouter, BackgroundTasks, WebSocket, WebSocketDisconnect, Depends, HTTPException, UploadFile, File, Form, status
 from sqlalchemy import or_
 from sqlalchemy.orm import Session, joinedload
 from sqlalchemy.sql import func
@@ -11,10 +13,12 @@ from database.database import get_db
 from database import models
 from schemas import chat as chat_schemas  # Ensure you have created this schema!
 from routers.auth import get_current_user, get_user_from_token
+from services.email import EmailDeliveryError, send_offline_chat_email
 from services.uploads import save_validated_image
 
 router = APIRouter(prefix="/chat", tags=["Chat"])
 UPLOAD_DIR = Path(__file__).resolve().parent.parent / "uploads"
+logger = logging.getLogger(__name__)
 
 class ConnectionManager:
     def __init__(self):
@@ -35,18 +39,22 @@ class ConnectionManager:
         else:
             del self.active_connections[user_id]
 
-    async def send_personal_message(self, message: dict, user_id: int):
+    async def send_personal_message(self, message: dict, user_id: int) -> int:
         connections = list(self.active_connections.get(user_id, []))
         stale_connections: List[WebSocket] = []
+        sent_count = 0
 
         for websocket in connections:
             try:
                 await websocket.send_json(message)
+                sent_count += 1
             except Exception:
                 stale_connections.append(websocket)
 
         for websocket in stale_connections:
             self.disconnect(user_id, websocket)
+
+        return sent_count
 
 manager = ConnectionManager()
 
@@ -61,6 +69,68 @@ def message_to_payload(message: models.Message) -> dict:
         "timestamp": message.timestamp.isoformat() if message.timestamp else None,
         "seen_at": message.seen_at.isoformat() if message.seen_at else None,
     }
+
+
+def _message_preview(message: models.Message) -> str:
+    if message.image_url:
+        return "Sent an image."
+
+    content = (message.content or "").strip()
+    if len(content) <= 160:
+        return content
+
+    return f"{content[:157]}..."
+
+
+def _send_offline_chat_email_safely(
+    *,
+    recipient_email: str,
+    recipient_name: str,
+    sender_name: str,
+    listing_title: str,
+    message_preview: str,
+    message_id: int,
+) -> None:
+    try:
+        send_offline_chat_email(
+            recipient_email=recipient_email,
+            recipient_name=recipient_name,
+            sender_name=sender_name,
+            listing_title=listing_title,
+            message_preview=message_preview,
+        )
+    except EmailDeliveryError:
+        logger.exception("Offline chat email failed for message %s", message_id)
+
+
+def _queue_offline_recipient_email(
+    *,
+    db: Session,
+    room: models.ChatRoom,
+    message: models.Message,
+    sender: models.User,
+    receiver_id: int,
+    background_tasks: BackgroundTasks | None = None,
+) -> None:
+    receiver = db.query(models.User).filter(models.User.id == receiver_id).first()
+    if not receiver:
+        return
+
+    listing_title = room.listing.title if room.listing else "a listing"
+    email_payload = {
+        "recipient_email": receiver.email,
+        "recipient_name": receiver.name,
+        "sender_name": sender.name,
+        "listing_title": listing_title,
+        "message_preview": _message_preview(message),
+        "message_id": message.id,
+    }
+
+    if background_tasks:
+        background_tasks.add_task(_send_offline_chat_email_safely, **email_payload)
+        return
+
+    asyncio.create_task(asyncio.to_thread(_send_offline_chat_email_safely, **email_payload))
 
 
 # --- NEW HTTP ROUTE (This will show up in Swagger) ---
@@ -224,6 +294,7 @@ async def mark_room_messages_read(
 @router.post("/rooms/{room_id}/messages/image", response_model=chat_schemas.MessageResponse)
 async def upload_chat_image(
     room_id: int,
+    background_tasks: BackgroundTasks,
     receiver_id: int = Form(...),
     file: UploadFile = File(...),
     db: Session = Depends(get_db),
@@ -255,7 +326,16 @@ async def upload_chat_image(
 
     full_message = message_to_payload(db_message)
     await manager.send_personal_message(full_message, current_user.id)
-    await manager.send_personal_message(full_message, receiver_id)
+    receiver_sent_count = await manager.send_personal_message(full_message, receiver_id)
+    if receiver_sent_count == 0:
+        _queue_offline_recipient_email(
+            db=db,
+            room=room,
+            message=db_message,
+            sender=current_user,
+            receiver_id=receiver_id,
+            background_tasks=background_tasks,
+        )
 
     return db_message
 
@@ -264,6 +344,7 @@ async def upload_chat_image(
 async def create_chat_message(
     room_id: int,
     message: chat_schemas.MessageTextCreate,
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user),
 ):
@@ -291,7 +372,16 @@ async def create_chat_message(
 
     full_message = message_to_payload(db_message)
     await manager.send_personal_message(full_message, current_user.id)
-    await manager.send_personal_message(full_message, receiver_id)
+    receiver_sent_count = await manager.send_personal_message(full_message, receiver_id)
+    if receiver_sent_count == 0:
+        _queue_offline_recipient_email(
+            db=db,
+            room=room,
+            message=db_message,
+            sender=current_user,
+            receiver_id=receiver_id,
+            background_tasks=background_tasks,
+        )
 
     return db_message
 
@@ -350,7 +440,15 @@ async def websocket_endpoint(
 
             # Echo the persisted message to both participants so IDs match read receipts.
             await manager.send_personal_message(full_message, user_id)
-            await manager.send_personal_message(full_message, receiver_id)
+            receiver_sent_count = await manager.send_personal_message(full_message, receiver_id)
+            if receiver_sent_count == 0:
+                _queue_offline_recipient_email(
+                    db=db,
+                    room=room,
+                    message=db_message,
+                    sender=current_user,
+                    receiver_id=receiver_id,
+                )
     except WebSocketDisconnect:
         pass
     finally:

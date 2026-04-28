@@ -25,8 +25,9 @@ services:
     environment:
       database_url: postgresql://${POSTGRES_USER:-lebooks}:${POSTGRES_PASSWORD:-change-me}@db:5432/${POSTGRES_DB:-lebooks}
       jwt_secret_key: ${JWT_SECRET_KEY:-change-me}
-      resend_api_key: ${RESEND_API_KEY:-}
+      azure_communication_email_connection_string: ${AZURE_COMMUNICATION_EMAIL_CONNECTION_STRING:-}
       email_from: ${EMAIL_FROM:-onboarding@lebooks.it}
+      email_logo_url: ${EMAIL_LOGO_URL:-}
       frontend_url: ${APP_SCHEME:-http}://${APP_HOST:-46.225.99.187}
       backend_base_url: ${APP_SCHEME:-http}://${APP_HOST:-46.225.99.187}/api
     volumes:
