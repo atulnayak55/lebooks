@@ -45,12 +45,50 @@ export function MainLayout({
     <div className="app-shell">
       <header className="app-header">
         <div className="app-header-row">
-          <div className="brand-lockup">
+          <button
+            type="button"
+            className="brand-lockup"
+            onClick={() => onViewChange("listings")}
+            aria-label={t("nav.marketplace")}
+          >
             <div className="brand-logo-shell">
               <img src={lebooksLogo} alt="lebooks logo" className="brand-logo" />
             </div>
-          </div>
-          <div className="auth-area">
+          </button>
+          <nav className="auth-area" aria-label="Primary navigation">
+            <button
+              className={`nav-link ${currentView === "listings" ? "active" : ""}`}
+              onClick={() => onViewChange("listings")}
+            >
+              {t("nav.marketplace")}
+            </button>
+
+            {session ? (
+              <>
+                <button
+                  className={`nav-link ${currentView === "inbox" ? "active" : ""}`}
+                  onClick={() => onViewChange("inbox")}
+                >
+                  <span className="nav-button-label">{t("nav.inbox")}</span>
+                  {unreadInboxCount > 0 ? (
+                    <span
+                      className="inbox-badge"
+                      aria-label={t("nav.unreadMessages", { count: unreadInboxCount })}
+                    >
+                      {unreadInboxCount > 99 ? "99+" : unreadInboxCount}
+                    </span>
+                  ) : null}
+                </button>
+                <button
+                  className={`nav-link ${currentView === "mylistings" ? "active" : ""}`}
+                  onClick={() => onViewChange("mylistings")}
+                >
+                  {t("nav.myListings")}
+                </button>
+              </>
+            ) : null}
+          </nav>
+          <div className="header-actions">
             <div className="language-switcher" role="group" aria-label={t("language.label")}>
               <button
                 type="button"
@@ -67,35 +105,8 @@ export function MainLayout({
                 {t("language.italian")}
               </button>
             </div>
-            <button
-              className={`auth-signin nav-button ${currentView === "listings" ? "active" : ""}`}
-              onClick={() => onViewChange("listings")}
-            >
-              {t("nav.marketplace")}
-            </button>
-
             {session ? (
               <>
-                <button
-                  className={`auth-signin nav-button ${currentView === "inbox" ? "active" : ""}`}
-                  onClick={() => onViewChange("inbox")}
-                >
-                  <span className="nav-button-label">{t("nav.inbox")}</span>
-                  {unreadInboxCount > 0 ? (
-                    <span
-                      className="inbox-badge"
-                      aria-label={t("nav.unreadMessages", { count: unreadInboxCount })}
-                    >
-                      {unreadInboxCount > 99 ? "99+" : unreadInboxCount}
-                    </span>
-                  ) : null}
-                </button>
-                <button
-                  className={`auth-signin nav-button ${currentView === "mylistings" ? "active" : ""}`}
-                  onClick={() => onViewChange("mylistings")}
-                >
-                  {t("nav.myListings")}
-                </button>
                 <span className="auth-email">{session.email}</span>
                 <button type="button" className="auth-signout" onClick={handleSignOut}>
                   {t("nav.signOut")}

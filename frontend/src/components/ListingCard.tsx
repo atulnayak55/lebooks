@@ -24,6 +24,7 @@ export function ListingCard({ listing, onMessageClick, onOpenDetails }: ListingC
   const firstImage = hasImages ? imageUrls[0] : null;
   const activeImage = hasImages ? imageUrls[activeImageIndex] : null;
   const conditionLabel = t(`card.condition.${listing.condition}`);
+  const conditionClass = `listing-tag-condition-${listing.condition}`;
   const listedDate = new Date(listing.created_at);
   const listedLabel = Number.isNaN(listedDate.getTime())
     ? t("card.recentlyListed")
@@ -106,7 +107,7 @@ export function ListingCard({ listing, onMessageClick, onOpenDetails }: ListingC
       role={onOpenDetails ? "button" : undefined}
     >
       <div className="listing-card-topline">
-        <span className="listing-tag listing-tag-primary">{conditionLabel}</span>
+        <span className={`listing-tag listing-tag-primary ${conditionClass}`}>{conditionLabel}</span>
         <span className="listing-tag">
           {hasImages
             ? t(imageUrls.length === 1 ? "card.photoCount_one" : "card.photoCount_other", {
@@ -135,7 +136,14 @@ export function ListingCard({ listing, onMessageClick, onOpenDetails }: ListingC
             className="listing-image-preview"
           />
         ) : (
-          <span className="listing-image-empty">{t("card.noImage")}</span>
+          <span className="listing-image-empty">
+            <svg className="listing-image-empty-icon" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M6.5 4.5h8.2c1.5 0 2.8 1.2 2.8 2.8v12.2H8.2a2.7 2.7 0 0 1-2.7-2.7V5.5c0-.6.4-1 1-1Z" />
+              <path d="M8.2 19.5a2.7 2.7 0 0 1 0-5.4h9.3" />
+              <path d="M9 7.5h5" />
+            </svg>
+            {t("card.noImage")}
+          </span>
         )}
       </button>
 
@@ -149,7 +157,13 @@ export function ListingCard({ listing, onMessageClick, onOpenDetails }: ListingC
       </p>
       <div className="listing-footer">
         <p className="listing-seller">{t("card.seller", { name: listing.seller.name })}</p>
-        <span className="listing-seller-chip">{t("card.studentListed")}</span>
+        <span className="listing-seller-chip">
+          <svg className="listing-seller-chip-icon" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M3 9.5 12 5l9 4.5-9 4.5-9-4.5Z" />
+            <path d="M7 12v3.2c0 1.3 2.2 2.3 5 2.3s5-1 5-2.3V12" />
+          </svg>
+          {t("card.studentListed")}
+        </span>
       </div>
       {onMessageClick && (
         <div className="listing-actions">

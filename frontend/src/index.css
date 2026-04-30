@@ -1,27 +1,24 @@
 :root {
-  font-family: "Trebuchet MS", "Avenir Next", "Segoe UI", sans-serif;
+  font-family: Inter, "Avenir Next", "Segoe UI", system-ui, sans-serif;
   color: #151515;
-  background:
-    radial-gradient(circle at top left, rgba(105, 180, 87, 0.18), transparent 28%),
-    radial-gradient(circle at top right, rgba(25, 25, 25, 0.08), transparent 32%),
-    linear-gradient(180deg, #f7f8f2 0%, #eef3e8 54%, #f7f5ef 100%);
-  --page-bg: #eef3e8;
-  --surface: rgba(255, 255, 255, 0.84);
+  background: #f7f8f4;
+  --page-bg: #f7f8f4;
+  --surface: rgba(255, 255, 255, 0.92);
   --surface-strong: #ffffff;
-  --surface-tint: #f4f8ef;
+  --surface-tint: #f2f6ee;
   --surface-dark: #161616;
   --ink: #151515;
-  --muted: #596255;
-  --line: rgba(21, 21, 21, 0.1);
-  --line-strong: rgba(21, 21, 21, 0.18);
-  --green: #64b44f;
-  --green-deep: #418f33;
-  --green-soft: #dff0d7;
-  --green-wash: rgba(100, 180, 79, 0.12);
-  --shadow: 0 22px 60px rgba(28, 35, 22, 0.14);
-  --radius-xl: 28px;
-  --radius-lg: 20px;
-  --radius-md: 14px;
+  --muted: #667064;
+  --line: rgba(21, 21, 21, 0.11);
+  --line-strong: rgba(21, 21, 21, 0.2);
+  --green: #4f9d45;
+  --green-deep: #2f7d32;
+  --green-soft: #e4f2de;
+  --green-wash: rgba(79, 157, 69, 0.11);
+  --shadow: 0 12px 28px rgba(28, 35, 22, 0.08);
+  --radius-xl: 16px;
+  --radius-lg: 12px;
+  --radius-md: 8px;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -41,10 +38,7 @@ body {
   min-height: 100vh;
   overflow-x: hidden;
   color: var(--ink);
-  background:
-    linear-gradient(135deg, rgba(100, 180, 79, 0.06), transparent 32%),
-    linear-gradient(225deg, rgba(21, 21, 21, 0.04), transparent 25%),
-    var(--page-bg);
+  background: var(--page-bg);
 }
 
 #root {

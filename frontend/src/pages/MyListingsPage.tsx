@@ -80,7 +80,14 @@ export function MyListingsPage({ session }: MyListingsPageProps) {
                     className="listing-image-preview"
                   />
                 ) : (
-                  <span className="listing-image-empty">{t("card.noImage")}</span>
+                  <span className="listing-image-empty">
+                    <svg className="listing-image-empty-icon" viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="M6.5 4.5h8.2c1.5 0 2.8 1.2 2.8 2.8v12.2H8.2a2.7 2.7 0 0 1-2.7-2.7V5.5c0-.6.4-1 1-1Z" />
+                      <path d="M8.2 19.5a2.7 2.7 0 0 1 0-5.4h9.3" />
+                      <path d="M9 7.5h5" />
+                    </svg>
+                    {t("card.noImage")}
+                  </span>
                 )}
               </div>
 

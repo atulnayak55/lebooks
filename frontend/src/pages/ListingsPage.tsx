@@ -230,81 +230,87 @@ export function ListingsPage({ authSession, chatConnection }: ListingsPageProps)
           </div>
         </div>
 
-        <div className="market-controls-row">
-          <div className="filters-row">
-            <SelectField
-              id="department-filter"
-              label={t("listings.filter.department")}
-              value={selectedDepartmentId}
-              onChange={(value) => {
-                setSelectedDepartmentId(value);
-                setSelectedProgramId("");
-                setSelectedCourseId("");
-                setRequestedPage(1);
-              }}
-              disabled={loadingFilters}
-            >
-              <option value="">{t("listings.option.allDepartments")}</option>
-              {departments.map((department) => (
-                <option key={department.id} value={String(department.id)}>
-                  {department.name}
-                </option>
-              ))}
-            </SelectField>
-
-            <SelectField
-              id="program-filter"
-              label={t("listings.filter.program")}
-              value={selectedProgramId}
-              onChange={(value) => {
-                setSelectedProgramId(value);
-                setSelectedCourseId("");
-                setRequestedPage(1);
-              }}
-              disabled={!selectedDepartmentId || loadingFilters}
-            >
-              <option value="">{t("listings.option.allPrograms")}</option>
-              {programs.map((program) => (
-                <option key={program.id} value={String(program.id)}>
-                  {program.name}
-                </option>
-              ))}
-            </SelectField>
-
-            <SelectField
-              id="course-filter"
-              label={t("listings.filter.course")}
-              value={selectedCourseId}
-              onChange={(value) => {
-                setSelectedCourseId(value);
-                setRequestedPage(1);
-              }}
-              disabled={!selectedProgramId || loadingFilters}
-            >
-              <option value="">{t("listings.option.allCourses")}</option>
-              {courses.map((course) => (
-                <option key={course.id} value={String(course.id)}>
-                  {course.name}
-                </option>
-              ))}
-            </SelectField>
+        <div className="filter-panel">
+          <div className="filter-panel-copy">
+            <p>{t("listings.filterPanelTitle")}</p>
+            <span>{t("listings.filterPanelSubtitle")}</span>
           </div>
+          <div className="market-controls-row">
+            <div className="filters-row">
+              <SelectField
+                id="department-filter"
+                label={t("listings.filter.department")}
+                value={selectedDepartmentId}
+                onChange={(value) => {
+                  setSelectedDepartmentId(value);
+                  setSelectedProgramId("");
+                  setSelectedCourseId("");
+                  setRequestedPage(1);
+                }}
+                disabled={loadingFilters}
+              >
+                <option value="">{t("listings.option.allDepartments")}</option>
+                {departments.map((department) => (
+                  <option key={department.id} value={String(department.id)}>
+                    {department.name}
+                  </option>
+                ))}
+              </SelectField>
 
-          <button
-            type="button"
-            className="sell-book-button"
-            onClick={() => {
-              if (!authSession) {
-                setSellError(t("listings.sellFirst"));
-                return;
-              }
-              setSellError(null);
-              setSellDialogOpen(true);
-            }}
-            title={t("listings.sellButton")}
-          >
-            {t("listings.sellButton")}
-          </button>
+              <SelectField
+                id="program-filter"
+                label={t("listings.filter.program")}
+                value={selectedProgramId}
+                onChange={(value) => {
+                  setSelectedProgramId(value);
+                  setSelectedCourseId("");
+                  setRequestedPage(1);
+                }}
+                disabled={!selectedDepartmentId || loadingFilters}
+              >
+                <option value="">{t("listings.option.allPrograms")}</option>
+                {programs.map((program) => (
+                  <option key={program.id} value={String(program.id)}>
+                    {program.name}
+                  </option>
+                ))}
+              </SelectField>
+
+              <SelectField
+                id="course-filter"
+                label={t("listings.filter.course")}
+                value={selectedCourseId}
+                onChange={(value) => {
+                  setSelectedCourseId(value);
+                  setRequestedPage(1);
+                }}
+                disabled={!selectedProgramId || loadingFilters}
+              >
+                <option value="">{t("listings.option.allCourses")}</option>
+                {courses.map((course) => (
+                  <option key={course.id} value={String(course.id)}>
+                    {course.name}
+                  </option>
+                ))}
+              </SelectField>
+            </div>
+
+            <button
+              type="button"
+              className="sell-book-button"
+              onClick={() => {
+                if (!authSession) {
+                  setSellError(t("listings.sellFirst"));
+                  return;
+                }
+                setSellError(null);
+                setSellDialogOpen(true);
+              }}
+              title={t("listings.sellButton")}
+            >
+              {t("listings.sellButton")}
+            </button>
+          </div>
         </div>
 
         {activeFilterChips.length > 0 ? (

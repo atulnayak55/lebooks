@@ -595,11 +595,7 @@ export function InboxPage({ session, chatConnection }: InboxPageProps) {
                       {formatEuro(activeRoom.listing.price, locale)}
                     </span>
                   </div>
-                  <span>
-                    {userId === activeRoom.seller_id ? t("inbox.buyer") : t("inbox.seller")}:{" "}
-                    {activeRoomOtherPerson?.name}
-                  </span>
-                  <span>
+                  <span className="conversation-listing-title">
                     {t("inbox.aboutListing", { title: activeRoom.listing.title })}
                   </span>
                 </div>
@@ -695,10 +691,19 @@ export function InboxPage({ session, chatConnection }: InboxPageProps) {
               </label>
               <input
                 ref={draftInputRef}
+                type="text"
+                name="chat-message"
                 value={draft}
                 onChange={(event) => setDraft(event.target.value)}
                 placeholder={t("chat.placeholder")}
                 disabled={uploading}
+                inputMode="text"
+                autoComplete="off"
+                autoCorrect="off"
+                autoCapitalize="sentences"
+                spellCheck={false}
+                enterKeyHint="send"
+                data-form-type="other"
               />
               <button
                 type="submit"
