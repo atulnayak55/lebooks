@@ -1,4 +1,3 @@
-import { useState } from "react";
 import type { ReactNode } from "react";
 import { AuthDialog } from "../features/auth/AuthDialog";
 import lebooksLogo from "../assets/lebooks.png";
@@ -17,6 +16,9 @@ type MainLayoutProps = {
   session: AuthSession | null;
   onSessionChange: (session: AuthSession | null) => void;
   unreadInboxCount: number;
+  authDialogOpen: boolean;
+  onAuthDialogOpen: () => void;
+  onAuthDialogClose: () => void;
 };
 
 export function MainLayout({
@@ -26,13 +28,16 @@ export function MainLayout({
   session,
   onSessionChange,
   unreadInboxCount,
+  authDialogOpen,
+  onAuthDialogOpen,
+  onAuthDialogClose,
 }: MainLayoutProps) {
-  const [dialogOpen, setDialogOpen] = useState(false);
   const { language, setLanguage, t } = useI18n();
 
   function handleSignedIn(nextSession: AuthSession) {
     saveAuthSession(nextSession);
     onSessionChange(nextSession);
+    onAuthDialogClose();
   }
 
   function handleSignOut() {
@@ -113,7 +118,7 @@ export function MainLayout({
                 </button>
               </>
             ) : (
-              <button type="button" className="auth-signin" onClick={() => setDialogOpen(true)}>
+              <button type="button" className="auth-signin" onClick={onAuthDialogOpen}>
                 {t("nav.signIn")}
               </button>
             )}
@@ -131,8 +136,8 @@ export function MainLayout({
         <span>{t("footer.pilot")}</span>
       </footer>
       <AuthDialog
-        open={dialogOpen}
-        onClose={() => setDialogOpen(false)}
+        open={authDialogOpen}
+        onClose={onAuthDialogClose}
         onSignedIn={handleSignedIn}
       />
     </div>

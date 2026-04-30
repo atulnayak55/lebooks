@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { MainLayout } from "./layouts/MainLayout";
 import { ListingsPage } from "./pages/ListingsPage";
 import { InboxPage } from "./pages/InboxPage";
@@ -7,7 +7,7 @@ import { ResetPasswordPage } from "./pages/ResetPasswordPage";
 import { getAuthSession, type AuthSession } from "./features/auth/session";
 import { useWebSocket, type WebSocketMessage } from "./hooks/useWebSocket";
 import { useI18n } from "./i18n/useI18n";
-import type { AppView } from "./types/navigation";
+import { viewFromPath, viewPaths, type AppView } from "./types/navigation";
 import "./App.css";
 import "./pages/ListingsPage.css";
 import "./pages/InboxPage.css";
@@ -78,10 +78,37 @@ function PrivacyPage() {
 }
 
 function AppShell() {
-  const [currentView, setCurrentView] = useState<AppView>("listings");
+  const [currentView, setCurrentView] = useState<AppView>(() =>
+    viewFromPath(window.location.pathname),
+  );
   const [session, setSession] = useState<AuthSession | null>(() => getAuthSession());
   const [readIncomingMessageIds, setReadIncomingMessageIds] = useState<Set<number>>(() => new Set());
+  const [authDialogOpen, setAuthDialogOpen] = useState(() => window.location.pathname === "/signin");
   const chatConnection = useWebSocket(session?.userId, session?.token);
+
+  useEffect(() => {
+    function handlePopState() {
+      setCurrentView(viewFromPath(window.location.pathname));
+      setAuthDialogOpen(window.location.pathname === "/signin");
+    }
+
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, []);
+
+  function updateBrowserPath(path: string, replace = false) {
+    if (window.location.pathname === path) {
+      return;
+    }
+
+    const nextUrl = `${path}${window.location.search}`;
+    if (replace) {
+      window.history.replaceState(null, "", nextUrl);
+      return;
+    }
+
+    window.history.pushState(null, "", nextUrl);
+  }
 
   const unreadCount = useMemo(() => {
     if (!session || currentView === "inbox") {
@@ -118,11 +145,25 @@ function AppShell() {
       markIncomingMessagesRead(chatConnection.messages);
     }
     setCurrentView(view);
+    setAuthDialogOpen(false);
+    updateBrowserPath(viewPaths[view]);
   }
 
   function handleSessionChange(nextSession: AuthSession | null) {
     setSession(nextSession);
     setReadIncomingMessageIds(new Set());
+  }
+
+  function handleSignInOpen() {
+    setAuthDialogOpen(true);
+    updateBrowserPath("/signin");
+  }
+
+  function handleAuthDialogClose() {
+    setAuthDialogOpen(false);
+    if (window.location.pathname === "/signin") {
+      updateBrowserPath(viewPaths[currentView], true);
+    }
   }
 
   return (
@@ -132,6 +173,9 @@ function AppShell() {
       session={session}
       onSessionChange={handleSessionChange}
       unreadInboxCount={unreadCount}
+      authDialogOpen={authDialogOpen}
+      onAuthDialogOpen={handleSignInOpen}
+      onAuthDialogClose={handleAuthDialogClose}
     >
       {currentView === "listings" ? (
         <ListingsPage authSession={session} chatConnection={chatConnection} />
